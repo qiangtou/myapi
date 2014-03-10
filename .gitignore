@@ -1,0 +1,11 @@
+.settings
+.project
+.classpath
+target
+.swp
+.svn
+log
+.log
+logs
+.logs
+.myeclipse
