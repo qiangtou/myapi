@@ -8,7 +8,7 @@ public interface BaseDao<T> {
 
 	public void delete(T t);
 
-	public T find(Serializable id);
+	public T load(Serializable id);
 
 	public void update(T t);
 

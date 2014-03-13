@@ -36,7 +36,11 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 		getHibernateTemplate().flush();
 	}
 
-	public T find(Serializable id) {
+	public T load(Serializable id) {
+		return (T) getHibernateTemplate().load(getClazz(), id);
+	}
+
+	public T get(Serializable id) {
 		return (T) getHibernateTemplate().get(getClazz(), id);
 	}
 

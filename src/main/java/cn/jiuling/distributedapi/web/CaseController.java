@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.jiuling.distributedapi.Vo.CaseGroupVo;
 import cn.jiuling.distributedapi.Vo.CaseRes;
+import cn.jiuling.distributedapi.Vo.CaseVideoVo;
 import cn.jiuling.distributedapi.Vo.CaseVo;
 import cn.jiuling.distributedapi.Vo.GroupRes;
 import cn.jiuling.distributedapi.Vo.ResStatus;
@@ -42,7 +43,7 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=AddCaseGroup" })
 	@ResponseBody
-	public String addCaseGroup(String username, String grouptitle, String description) throws Exception {
+	public String addCaseGroup(@RequestParam String username, @RequestParam String grouptitle, @RequestParam String description) {
 		CaseGroup ug;
 		ResStatus rs;
 		ug = caseService.addCaseGroup(username, grouptitle, description);
@@ -60,7 +61,7 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=DeleteCaseGroup" })
 	@ResponseBody
-	public String deleteCaseGroup(Long groupid) throws Exception {
+	public String deleteCaseGroup(@RequestParam Long groupid) throws Exception {
 		caseService.deleteCaseGroup(groupid);
 		ResStatus rs = new ResStatus(Status.CASEGROUP_DEL_SUCCESS);
 		return XmlUtil.parse(rs);
@@ -75,7 +76,7 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=ModifyCaseGroup" })
 	@ResponseBody
-	public String modifyCaseGroup(Long groupid, String newtitle, String newdesc) throws Exception {
+	public String modifyCaseGroup(@RequestParam Long groupid, String newtitle, String newdesc) throws Exception {
 		CaseGroup caseGroup = new CaseGroup(groupid, newtitle, newdesc);
 		caseService.modifyCaseGroup(caseGroup);
 		ResStatus rs = new ResStatus(Status.CASEGROUP_MODIFY_SUCCESS);
@@ -116,7 +117,8 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=AddCase" })
 	@ResponseBody
-	public String addCase(Long parentid, String casetitle, String location, Integer casestyle, Timestamp occurredtime, String description,
+	public String addCase(Long parentid, @RequestParam String casetitle, @RequestParam String location,
+			@RequestParam Integer casestyle, Timestamp occurredtime, @RequestParam String description,
 			@RequestParam("class") String class_, Long groupid, String serialnumber) throws Exception {
 		Case c = new Case(parentid, casetitle, location, casestyle, occurredtime, description,
 					class_, groupid, serialnumber);
@@ -125,10 +127,25 @@ public class CaseController extends BaseController {
 		return XmlUtil.parse(rs);
 	}
 
+	/**
+	 * 修改案件信息
+	 * 
+	 * @param caseid
+	 * @param parentid
+	 * @param casetitle
+	 * @param location
+	 * @param casestyle
+	 * @param occurredtime
+	 * @param description
+	 * @param class_
+	 * @param groupid
+	 * @param serialnumber
+	 * @return
+	 */
 	@RequestMapping(params = { "command=ModifyCase" })
 	@ResponseBody
-	public String modifyCase(Long caseid, Long parentid, String casetitle, String location, Integer casestyle, Timestamp occurredtime, String description,
-			@RequestParam("class") String class_, Long groupid, String serialnumber) {
+	public String modifyCase(@RequestParam Long caseid, Long parentid, String casetitle, String location, Integer casestyle, Timestamp occurredtime,
+			String description, @RequestParam("class") String class_, Long groupid, String serialnumber) {
 		Case c = new Case(parentid, casetitle, location, casestyle, occurredtime, description,
 				class_, groupid, serialnumber);
 		c.setId(caseid);
@@ -153,10 +170,64 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=QueryCase" })
 	@ResponseBody
-	public String queryCase(Integer startindex, Integer count, Integer sorttype, Integer is_descend) {
+	public String queryCase(
+			@RequestParam(required = false, defaultValue = "0") Integer startindex,
+			@RequestParam(required = false, defaultValue = "-1") Integer count,
+			@RequestParam(required = false, defaultValue = "0") Integer sorttype,
+			@RequestParam(required = false, defaultValue = "1") Integer is_descend) {
 
 		List<CaseVo> list = caseService.queryCase(startindex, count, sorttype, is_descend);
-		ResStatus rs = new ResStatus(Status.CASE_MODIFY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.CASE_QUERY_SUCCESS);
+		return XmlUtil.parse(rs, list);
+	}
+
+	/**
+	 * 搜索案件
+	 * 
+	 * @param type
+	 * @param value
+	 * @param value2
+	 * @param startindex
+	 * @param count
+	 * @return
+	 */
+	// TODO 搜索案件字段的精确模糊查询???
+	@RequestMapping(params = { "command=SearchCase" })
+	@ResponseBody
+	public String searchCase(@RequestParam Integer type, @RequestParam String value, Timestamp value2,
+			@RequestParam(required = false, defaultValue = "0") Integer startindex,
+			@RequestParam(required = false, defaultValue = "-1") Integer count) {
+		List<CaseVo> list = caseService.searchCase(type, value, value2, startindex, count);
+		ResStatus rs = new ResStatus(Status.CASE_SEARCH_SUCCESS);
+		return XmlUtil.parse(rs, list);
+	}
+
+	/**
+	 * 查询案件信息
+	 * 
+	 * @param caseid
+	 * @return
+	 */
+	@RequestMapping(params = { "command=QueryCaseInfo" })
+	@ResponseBody
+	public String queryCaseInfo(@RequestParam Long caseid) {
+
+		CaseVo c = caseService.queryCaseInfo(caseid);
+		ResStatus rs = new ResStatus(Status.CASE_QUERY_SUCCESS);
+		return XmlUtil.parse(rs, c);
+	}
+
+	/**
+	 * 查询案件下的视频列表
+	 * 
+	 * @param caseid
+	 * @return
+	 */
+	@RequestMapping(params = { "command=QueryCaseVideo" })
+	@ResponseBody
+	public String queryCaseVideo(@RequestParam Long caseid) {
+		CaseVideoVo c = caseService.queryCaseVideo(caseid);
+		ResStatus rs = new ResStatus(Status.CASEVIDEO_QUERY_SUCCESS);
+		return XmlUtil.parse(rs, c);
 	}
 }

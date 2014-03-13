@@ -10,13 +10,19 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * TblCamera entity. @author MyEclipse Persistence Tools
+ * Camera entity. @author MyEclipse Persistence Tools
  */
 @Entity
 @Table(name = "tbl_camera")
 public class Camera implements java.io.Serializable {
 
 	// Fields
+	private static final Short UNDELETED = 0;
+	private static final Short DELETED = 1;
+
+	// cameratitle, cameratype, serialnumber, location,
+	// direction, longitude, latitude, description, null,
+	// calibration, video_type
 
 	private Long id;
 	private Long caseId;
@@ -33,6 +39,7 @@ public class Camera implements java.io.Serializable {
 	private Timestamp createtime;
 	private Short isDeleted;
 	private Integer calibration;
+	private Short videoType;
 
 	// Constructors
 
@@ -40,41 +47,54 @@ public class Camera implements java.io.Serializable {
 	public Camera() {
 	}
 
-	/** minimal constructor */
-	public Camera(Long caseId, String title, String location, Short type, String serialnumber, Timestamp servicetime, Float longitude, Float latitude,
-			String description, Long ownerid, Timestamp createtime, Short isDeleted, Integer calibration) {
+	/**
+	 * 
+	 * @param caseId
+	 *            案件id
+	 * @param title
+	 *            摄像头名称
+	 * @param type
+	 *            摄像头类型
+	 * @param serialnumber
+	 *            摄像头编号
+	 * @param location
+	 *            摄像头位置
+	 * @param direction
+	 *            摄像头方位
+	 * @param longitude
+	 *            经度
+	 * @param latitude
+	 *            纬度
+	 * @param description
+	 *            摄像头描述
+	 * @param createtime
+	 *            创建时间
+	 * @param calibration
+	 *            校准因子
+	 * @param videoType
+	 *            视频转码类型
+	 */
+	public Camera(Long caseId, String title, Short type, String serialnumber, String location, Float direction, Float longitude, Float latitude,
+			String description, Timestamp createtime, Integer calibration, Short videoType) {
 		this.caseId = caseId;
 		this.title = title;
-		this.location = location;
-		this.type = type;
-		this.serialnumber = serialnumber;
-		this.servicetime = servicetime;
-		this.longitude = longitude;
-		this.latitude = latitude;
-		this.description = description;
-		this.ownerid = ownerid;
-		this.createtime = createtime;
-		this.isDeleted = isDeleted;
-		this.calibration = calibration;
-	}
-
-	/** full constructor */
-	public Camera(Long caseId, String title, String location, Float direction, Short type, String serialnumber, Timestamp servicetime, Float longitude,
-			Float latitude, String description, Long ownerid, Timestamp createtime, Short isDeleted, Integer calibration) {
-		this.caseId = caseId;
-		this.title = title;
-		this.location = location;
 		this.direction = direction;
 		this.type = type;
 		this.serialnumber = serialnumber;
-		this.servicetime = servicetime;
+		this.location = location;
 		this.longitude = longitude;
 		this.latitude = latitude;
 		this.description = description;
-		this.ownerid = ownerid;
 		this.createtime = createtime;
-		this.isDeleted = isDeleted;
 		this.calibration = calibration;
+		this.videoType = videoType;
+
+		// 一些默认设置
+		this.isDeleted = UNDELETED;
+		// TODO Camera.ownerid默认值是什么???
+		this.ownerid = 0L;
+		// TODO Camera.servicetime默认值又是什么???
+		this.servicetime = new Timestamp(System.currentTimeMillis());
 	}
 
 	// Property accessors
@@ -213,6 +233,15 @@ public class Camera implements java.io.Serializable {
 
 	public void setCalibration(Integer calibration) {
 		this.calibration = calibration;
+	}
+
+	@Column(name = "video_type", nullable = false)
+	public Short getVideoType() {
+		return this.videoType;
+	}
+
+	public void setVideoType(Short videoType) {
+		this.videoType = videoType;
 	}
 
 }

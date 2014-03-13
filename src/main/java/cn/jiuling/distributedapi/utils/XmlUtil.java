@@ -79,7 +79,7 @@ public class XmlUtil {
 	 * @param obj
 	 *            返回数据对象
 	 * @param wrapElement
-	 *            数据对象是否需要包一层元素
+	 *            数据对象是否需要包一层元素,true:用element包住;false:没有element包住
 	 * @return xml字符串
 	 */
 	public static String parse(ResStatus rs, Object obj, boolean wrapElement) {
@@ -125,7 +125,7 @@ public class XmlUtil {
 		for (Field f : fs) {
 			value = getFieldValue(obj, f);
 			node = f.getAnnotation(Node.class);
-			field = null == node ? f.getName().toLowerCase() : node.value();
+			field = null == node ? f.getName() : node.value();
 			sb.append("<").append(field).append(">").append(value).append("</").append(field).append(">").append("\n");
 		}
 		return sb;

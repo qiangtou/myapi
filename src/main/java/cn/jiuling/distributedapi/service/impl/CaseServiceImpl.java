@@ -1,13 +1,17 @@
 package cn.jiuling.distributedapi.service.impl;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.apache.log4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import cn.jiuling.distributedapi.Vo.CaseGroupVo;
+import cn.jiuling.distributedapi.Vo.CaseReportVo;
+import cn.jiuling.distributedapi.Vo.CaseVideoVo;
 import cn.jiuling.distributedapi.Vo.CaseVo;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.dao.CaseDao;
@@ -21,7 +25,6 @@ import cn.jiuling.distributedapi.service.CaseService;
 
 @Service("caseService")
 public class CaseServiceImpl implements CaseService {
-	private final Logger log = Logger.getLogger(CaseServiceImpl.class);
 	@Resource
 	private CaseGroupDao caseGroupDao;
 	@Resource
@@ -47,10 +50,7 @@ public class CaseServiceImpl implements CaseService {
 	@Override
 	public void deleteCaseGroup(Long groupid) {
 		try {
-			CaseGroup g = caseGroupDao.find(groupid);
-			if (g == null) {
-				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
-			}
+			CaseGroup g = caseGroupDao.load(groupid);
 			caseGroupDao.delete(g);
 		} catch (Exception e) {
 			throw new ServiceException(Status.CASEGROUP_DEL_ERROR, e);
@@ -60,13 +60,9 @@ public class CaseServiceImpl implements CaseService {
 	@Override
 	public void modifyCaseGroup(CaseGroup caseGroup) {
 		try {
-			CaseGroup g = caseGroupDao.find(caseGroup.getId());
-			if (g == null) {
-				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
-			}
+			CaseGroup g = caseGroupDao.load(caseGroup.getId());
 			g.setTitle(caseGroup.getTitle());
 			g.setDescription(caseGroup.getDescription());
-
 			caseGroupDao.update(g);
 		} catch (Exception e) {
 			throw new ServiceException(Status.CASEGROUP_MODIFY_ERROR, e);
@@ -95,10 +91,7 @@ public class CaseServiceImpl implements CaseService {
 	@Override
 	public void modifyCase(Case newCase) {
 		try {
-			Case c = caseDao.find(newCase.getId());
-			if (c == null) {
-				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
-			}
+			Case c = caseDao.load(newCase.getId());
 			// Long caseid, Long parentid, String casetitle, String location,
 			// Integer casestyle, Timestamp occurredtime, String description,
 			// @RequestParam("class") String class_, Long groupid, String
@@ -122,9 +115,63 @@ public class CaseServiceImpl implements CaseService {
 	@Override
 	public List<CaseVo> queryCase(Integer startindex, Integer count, Integer sorttype, Integer isDescend) {
 		try {
-			return caseDao.query(startindex, count, sorttype, isDescend);
+			List list = caseDao.query(startindex, count, sorttype, isDescend);
+			return copyList(list);
 		} catch (Exception e) {
 			throw new ServiceException(Status.CASE_QUERY_ERROR, e);
 		}
+	}
+
+	private List<CaseVo> copyList(List list) {
+		List<CaseVo> caseList = new ArrayList<CaseVo>();
+		Case c;
+		CaseVo cv;
+		if (list.size() > 0) {
+			for (int i = 0, j = list.size(); i < j; i++) {
+				c = (Case) list.get(i);
+				cv = new CaseVo();
+				BeanUtils.copyProperties(c, cv);
+				caseList.add(cv);
+			}
+		}
+		return caseList;
+	}
+
+	@Override
+	public List<CaseVo> searchCase(Integer type, String value, Timestamp time, Integer startindex, Integer count) {
+		try {
+			List list = caseDao.searchCase(type, value, time, startindex, count);
+			return copyList(list);
+		} catch (Exception e) {
+			throw new ServiceException(Status.CASE_SEARCH_ERROR, e);
+		}
+	}
+
+	@Override
+	public CaseVo queryCaseInfo(Long caseid) {
+		try {
+			Case c = caseDao.load(caseid);
+			CaseVo cv = new CaseVo();
+			BeanUtils.copyProperties(c, cv);
+			return cv;
+		} catch (Exception e) {
+			throw new ServiceException(Status.CASE_QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public CaseVideoVo queryCaseVideo(Long caseid) {
+		try {
+			CaseVideoVo c = caseDao.queryCaseVideo(caseid);
+			return c;
+		} catch (Exception e) {
+			throw new ServiceException(Status.CASEVIDEO_QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public CaseReportVo queryCaseReport(Long caseid) {
+		// TODO queryCaseReport,表的含义还是需要解释
+		return null;
 	}
 }

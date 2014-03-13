@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -39,6 +41,15 @@ public class BaseController {
 		log.error("Request: " + req.getRequestURL() + "," + parameter2String(req) + ", raised " + e.getMessage(), e.getCause());
 		ResStatus rs = new ResStatus();
 		rs.setStatus(Status.SERVER_ERROR);
+		return XmlUtil.parse(rs);
+	}
+
+	@ExceptionHandler(value = { TypeMismatchException.class, MissingServletRequestParameterException.class })
+	@ResponseBody
+	public String handleParameter(HttpServletRequest req, Exception e) {
+		log.error("Request: " + req.getRequestURL() + "," + parameter2String(req) + ", raised " + e.getMessage(), e.getCause());
+		ResStatus rs = new ResStatus();
+		rs.setStatus(Status.PARAMETER_ERROR);
 		return XmlUtil.parse(rs);
 	}
 }

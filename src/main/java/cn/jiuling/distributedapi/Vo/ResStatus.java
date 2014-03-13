@@ -10,8 +10,8 @@ public class ResStatus {
 	public ResStatus() {
 	}
 
-	public ResStatus(Status status) {
-		this.setStatus(status);
+	public ResStatus(Status Status) {
+		this.setStatus(Status);
 	}
 
 	public void setStatus(Status status) {

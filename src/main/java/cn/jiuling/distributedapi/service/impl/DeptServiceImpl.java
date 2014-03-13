@@ -27,7 +27,7 @@ public class DeptServiceImpl implements DeptService {
 		boolean hasServer=deptDao.hasServer(deptId);
 		if(!hasServer){
 			//修改删除状态
-			Dept dept=deptDao.find(deptId);
+			Dept dept=deptDao.load(deptId);
 			dept.setIsDelete(Dept.DELETE);
 			deptDao.update(dept);
 		}

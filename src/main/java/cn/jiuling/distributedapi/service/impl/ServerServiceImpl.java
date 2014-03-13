@@ -24,18 +24,18 @@ public class ServerServiceImpl implements ServerService {
 	}
 
 	public void enable(Server server) {
-		server =serverDao.find(server.getId());
+		server =serverDao.load(server.getId());
 		server.setIsValid(Server.VALID);
 		saveOrUpdate(server);
 	}
 
 	public void del(Server server) {
-		server =serverDao.find(server.getId());
+		server =serverDao.load(server.getId());
 		serverDao.delete(server);
 	}
 
 	public Server updateServer(Server server) {
-		Server s =serverDao.find(server.getId());
+		Server s =serverDao.load(server.getId());
 		s.setIpAddr(server.getIpAddr());
 		s.setDeptId(server.getDeptId());
 		s.setIsEnhance(server.getIsEnhance());
@@ -45,7 +45,7 @@ public class ServerServiceImpl implements ServerService {
 
 	@Override
 	public void disable(Server server) {
-		server =serverDao.find(server.getId());
+		server =serverDao.load(server.getId());
 		server.setIsValid(Server.INVALID);
 		saveOrUpdate(server);
 		

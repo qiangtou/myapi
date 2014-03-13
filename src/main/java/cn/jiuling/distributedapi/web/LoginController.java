@@ -44,7 +44,7 @@ public class LoginController extends BaseController {
 			loginUser.setUserid(user.getUserId());
 			loginUser.setGroupId(user.getGroupId());
 			loginUser.setTaskPriority(user.getTaskPriority());
-			// TODO 是否允许外部登陆
+			// TODO User.singleormulti是否允许外部登陆默认值是什么?
 			loginUser.setSingleormulti("");
 
 			session.setAttribute("userName", user.getUserName());

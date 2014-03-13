@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
 	private UserGroupDao userGroupDao;
 
 	public User findUserById(Integer userId) {
-		return userDao.find(userId);
+		return userDao.load(userId);
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void delUserGroup(Integer groupid) {
 		try {
-			UserGroup ug = userGroupDao.find(groupid);
+			UserGroup ug = userGroupDao.load(groupid);
 			userGroupDao.delete(ug);
 		} catch (Exception e) {
 			throw new ServiceException(Status.USERGROUP_DEL_ERROR, e);
@@ -75,13 +75,13 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void delUser(Integer userid) {
-		User u = userDao.find(userid);
+		User u = userDao.load(userid);
 		userDao.delete(u);
 	}
 
 	@Override
 	public void modifyUser(User user) {
-		User u = userDao.find(user.getUserId());
+		User u = userDao.load(user.getUserId());
 		// User(userid, username, fullname, blocked, groupid,
 		// update_time_regular, password);
 		u.setUserName(user.getUserName());
