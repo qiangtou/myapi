@@ -40,7 +40,16 @@ public class CaseDaoImpl extends BaseDaoImpl<Case> implements CaseDao {
 		String types[] = { "title", "location", "style", "ocurredtime", "description", "class", "serialnumber" };
 		if (null != type && type >= 0 && type < types.length) {
 			String property = types[type];
-			criteria.add(Property.forName(property).eq(value));
+			Property p = Property.forName(property);
+			if ("ocurredtime".equals(property)) {
+				// 大于等于发生时间
+				criteria.add(p.ge(value));
+			} else if ("description".equals(property)) {
+				// 描述模糊查询
+				criteria.add(p.like(value));
+			} else {
+				criteria.add(p.eq(value));
+			}
 		}
 		return getHibernateTemplate().findByCriteria(criteria, startindex, count);
 	}

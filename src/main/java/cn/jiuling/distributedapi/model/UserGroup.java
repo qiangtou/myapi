@@ -27,8 +27,8 @@ public class UserGroup {
 
 	}
 
-	public UserGroup(String name, String description) {
-		this.title = name;
+	public UserGroup(String title, String description) {
+		this.title = title;
 		this.description = description;
 	}
 

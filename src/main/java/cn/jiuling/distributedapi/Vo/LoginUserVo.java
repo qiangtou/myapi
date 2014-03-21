@@ -4,17 +4,9 @@ public class LoginUserVo {
 	private Integer userid;
 	@Node("role")
 	private Integer groupId;
-	private String singleormulti;
+	private Short singleormulti;
 	@Node("task_priority")
 	private Integer taskPriority;
-
-	public Integer getGroupId() {
-		return groupId;
-	}
-
-	public void setGroupId(Integer groupId) {
-		this.groupId = groupId;
-	}
 
 	public Integer getUserid() {
 		return userid;
@@ -24,11 +16,19 @@ public class LoginUserVo {
 		this.userid = userid;
 	}
 
-	public String getSingleormulti() {
+	public Integer getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
+
+	public Short getSingleormulti() {
 		return singleormulti;
 	}
 
-	public void setSingleormulti(String singleormulti) {
+	public void setSingleormulti(Short singleormulti) {
 		this.singleormulti = singleormulti;
 	}
 

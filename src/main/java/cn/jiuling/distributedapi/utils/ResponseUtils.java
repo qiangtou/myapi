@@ -1,7 +1,6 @@
 package cn.jiuling.distributedapi.utils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -11,8 +10,8 @@ import cn.jiuling.distributedapi.Vo.Node;
 import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.model.User;
 
-public class XmlUtil {
-	private static Logger log = Logger.getLogger(XmlUtil.class);
+public class ResponseUtils {
+	private static Logger log = Logger.getLogger(ResponseUtils.class);
 	public static String ROOT_ELEMENT = "element";
 	public static String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
@@ -49,9 +48,15 @@ public class XmlUtil {
 	 */
 	public static String parse(ResStatus rs, Object obj) {
 		StringBuilder res = parseStatus(rs);
-		res.append(parse(obj, ROOT_ELEMENT));
+		String root = getRootElement(obj);
+		res.append(parse(obj, root));
 		wrapper(res);
 		return handlerReturnType(res.toString());
+	}
+
+	private static String getRootElement(Object obj) {
+		Node n = obj.getClass().getAnnotation(Node.class);
+		return null == n ? ROOT_ELEMENT : n.value();
 	}
 
 	/**
@@ -64,9 +69,11 @@ public class XmlUtil {
 	public static String parse(ResStatus rs, List list) {
 		StringBuilder res;
 		res = parseStatus(rs);
-		if (null != list) {
-			for (int i = 0, j = list.size(); i < j; i++) {
-				res.append(parse(list.get(i), ROOT_ELEMENT));
+		int size = list.size();
+		if (null != list && size > 0) {
+			String root = getRootElement(list.get(0));
+			for (int i = 0; i < size; i++) {
+				res.append(parse(list.get(i), root));
 			}
 		}
 		wrapper(res);
@@ -84,8 +91,11 @@ public class XmlUtil {
 	 */
 	public static String parse(ResStatus rs, Object obj, boolean wrapElement) {
 		StringBuilder res = parseStatus(rs);
-		String wrap = wrapElement ? ROOT_ELEMENT : "";
-		res.append(parse(obj, wrap));
+		if (null != obj) {
+			String root = getRootElement(obj);
+			String wrap = wrapElement ? root : "";
+			res.append(parse(obj, wrap));
+		}
 		wrapper(res);
 		return handlerReturnType(res.toString());
 	}
@@ -172,22 +182,23 @@ public class XmlUtil {
 		xml = xml.substring(XML_DECLARATION.length());
 		xml = xml.replaceAll("</?result>", "");
 		xml = xml.replaceAll("\n", "");
-		int rootIndex = xml.indexOf("<" + ROOT_ELEMENT);
+		String root = ROOT_ELEMENT;
+		int rootIndex = xml.indexOf("<" + root);
 		if (rootIndex == -1) {
 			xml = handlerObj(xml);
 		} else {
 			String fomer = handlerObj(xml.substring(0, rootIndex));
-			String latter = xml.substring(rootIndex).replaceAll("<" + ROOT_ELEMENT + ">", "");
-			String latters[] = latter.split("</" + ROOT_ELEMENT + ">");
+			String latter = xml.substring(rootIndex).replaceAll("<" + root + ">", "");
+			String latters[] = latter.split("</" + root + ">");
 			int len = latters.length;
 			boolean isList = len > 1;
-			String preFix = "\"" + ROOT_ELEMENT + "\":" + (isList ? "[" : "");
+			String preFix = "\"" + root + "\":" + (isList ? "[" : "");
 			for (int i = 0, j = len; i < j; i++) {
 				preFix = preFix + "{" + handlerObj(latters[i]) + "},";
 			}
-			int comer = preFix.lastIndexOf(",");
-			if (comer > -1) {
-				preFix = preFix.substring(0, comer);
+			int commaIndex = preFix.lastIndexOf(",");
+			if (commaIndex > -1) {
+				preFix = preFix.substring(0, commaIndex);
 			}
 			preFix += (isList ? "]" : "");
 
@@ -209,17 +220,8 @@ public class XmlUtil {
 	}
 
 	public static void main(String[] args) {
-		User u = new User();
-		ResStatus rs = new ResStatus();
-		rs.setCode(333);
-		rs.setDesc("这是一个测试");
-		String xml = XmlUtil.parse(rs);
-
-		List l = new ArrayList<User>();
-		l.add(u);
-		// log.info();
-		xml = toJson(XmlUtil.parse(rs, l));
-		log.info(xml);
+		String s = ResponseUtils.parse(new User()).toString();
+		log.info(s);
 
 	}
 }

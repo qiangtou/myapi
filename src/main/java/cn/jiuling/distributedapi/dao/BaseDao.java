@@ -15,4 +15,21 @@ public interface BaseDao<T> {
 	public void saveOrUpdate(T t);
 
 	public List<T> getAll();
+
+	/**
+	 * 通过属性名查找实体
+	 * 
+	 * @param name
+	 *            属性名
+	 * @param value
+	 *            值
+	 * @return
+	 */
+	public T findBy(String name, Object value);
+
+	public List exeSql(final String sql);
+
+	public List find(final String sql, final int index, final int count);
+
+	public Long getCount(String sql);
 }

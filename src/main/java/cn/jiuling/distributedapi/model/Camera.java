@@ -91,10 +91,8 @@ public class Camera implements java.io.Serializable {
 
 		// 一些默认设置
 		this.isDeleted = UNDELETED;
-		// TODO Camera.ownerid默认值是什么???
-		this.ownerid = 0L;
-		// TODO Camera.servicetime默认值又是什么???
-		this.servicetime = new Timestamp(System.currentTimeMillis());
+		this.ownerid = Long.valueOf(0xffffffff);
+		this.servicetime = new Timestamp(0L);
 	}
 
 	// Property accessors

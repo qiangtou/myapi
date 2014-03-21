@@ -21,7 +21,7 @@ import cn.jiuling.distributedapi.model.Case;
 import cn.jiuling.distributedapi.model.CaseGroup;
 import cn.jiuling.distributedapi.service.CaseService;
 import cn.jiuling.distributedapi.service.UserService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(value = "server.php", produces = "text/html;charset=utf-8")
@@ -48,8 +48,8 @@ public class CaseController extends BaseController {
 		ResStatus rs;
 		ug = caseService.addCaseGroup(username, grouptitle, description);
 		rs = new GroupRes(ug.getId().intValue());
-		rs.setStatus(Status.CASEGROUP_ADD_SUCCESS);
-		return XmlUtil.parse(rs);
+		rs.setStatus(Status.ADD_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -63,8 +63,8 @@ public class CaseController extends BaseController {
 	@ResponseBody
 	public String deleteCaseGroup(@RequestParam Long groupid) throws Exception {
 		caseService.deleteCaseGroup(groupid);
-		ResStatus rs = new ResStatus(Status.CASEGROUP_DEL_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.DEL_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -79,8 +79,8 @@ public class CaseController extends BaseController {
 	public String modifyCaseGroup(@RequestParam Long groupid, String newtitle, String newdesc) throws Exception {
 		CaseGroup caseGroup = new CaseGroup(groupid, newtitle, newdesc);
 		caseService.modifyCaseGroup(caseGroup);
-		ResStatus rs = new ResStatus(Status.CASEGROUP_MODIFY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.MODIFY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -96,8 +96,8 @@ public class CaseController extends BaseController {
 	@ResponseBody
 	public String queryCaseGroup() throws Exception {
 		List<CaseGroupVo> caseGroupList = caseService.queryCaseGroup();
-		ResStatus rs = new ResStatus(Status.CASEGROUP_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, caseGroupList);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, caseGroupList);
 	}
 
 	/**
@@ -117,14 +117,22 @@ public class CaseController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=AddCase" })
 	@ResponseBody
-	public String addCase(Long parentid, @RequestParam String casetitle, @RequestParam String location,
+	public String addCase(
+			@RequestParam(required = false, defaultValue = "-1") Long parentid,
+			@RequestParam String casetitle, @RequestParam String location,
 			@RequestParam Integer casestyle, Timestamp occurredtime, @RequestParam String description,
-			@RequestParam("class") String class_, Long groupid, String serialnumber) throws Exception {
+			@RequestParam("class") String class_,
+			@RequestParam(required = false, defaultValue = "-1") Long groupid,
+			@RequestParam(required = false, defaultValue = "") String serialnumber) throws Exception {
+
+		if (null == occurredtime) {
+			occurredtime = new Timestamp(0L);
+		}
 		Case c = new Case(parentid, casetitle, location, casestyle, occurredtime, description,
 					class_, groupid, serialnumber);
 		caseService.addCase(c);
-		CaseRes rs = new CaseRes(Status.CASE_ADD_SUCCESS, c.getId());
-		return XmlUtil.parse(rs);
+		CaseRes rs = new CaseRes(Status.ADD_SUCCESS, c.getId());
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -150,8 +158,8 @@ public class CaseController extends BaseController {
 				class_, groupid, serialnumber);
 		c.setId(caseid);
 		caseService.modifyCase(c);
-		ResStatus rs = new ResStatus(Status.CASE_MODIFY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.MODIFY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -177,8 +185,8 @@ public class CaseController extends BaseController {
 			@RequestParam(required = false, defaultValue = "1") Integer is_descend) {
 
 		List<CaseVo> list = caseService.queryCase(startindex, count, sorttype, is_descend);
-		ResStatus rs = new ResStatus(Status.CASE_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, list);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, list);
 	}
 
 	/**
@@ -191,15 +199,14 @@ public class CaseController extends BaseController {
 	 * @param count
 	 * @return
 	 */
-	// TODO 搜索案件字段的精确模糊查询???
 	@RequestMapping(params = { "command=SearchCase" })
 	@ResponseBody
 	public String searchCase(@RequestParam Integer type, @RequestParam String value, Timestamp value2,
 			@RequestParam(required = false, defaultValue = "0") Integer startindex,
 			@RequestParam(required = false, defaultValue = "-1") Integer count) {
 		List<CaseVo> list = caseService.searchCase(type, value, value2, startindex, count);
-		ResStatus rs = new ResStatus(Status.CASE_SEARCH_SUCCESS);
-		return XmlUtil.parse(rs, list);
+		ResStatus rs = new ResStatus(Status.SEARCH_SUCCESS);
+		return ResponseUtils.parse(rs, list);
 	}
 
 	/**
@@ -213,8 +220,8 @@ public class CaseController extends BaseController {
 	public String queryCaseInfo(@RequestParam Long caseid) {
 
 		CaseVo c = caseService.queryCaseInfo(caseid);
-		ResStatus rs = new ResStatus(Status.CASE_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, c);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, c);
 	}
 
 	/**
@@ -227,7 +234,7 @@ public class CaseController extends BaseController {
 	@ResponseBody
 	public String queryCaseVideo(@RequestParam Long caseid) {
 		CaseVideoVo c = caseService.queryCaseVideo(caseid);
-		ResStatus rs = new ResStatus(Status.CASEVIDEO_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, c);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, c);
 	}
 }

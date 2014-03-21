@@ -9,6 +9,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.jiuling.distributedapi.Vo.AddUserRes;
@@ -19,7 +20,7 @@ import cn.jiuling.distributedapi.Vo.UserVo;
 import cn.jiuling.distributedapi.model.User;
 import cn.jiuling.distributedapi.model.UserGroup;
 import cn.jiuling.distributedapi.service.UserService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(value = "/server.php", produces = { "text/html;charset=utf-8" })
@@ -37,24 +38,15 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=AddUserGroup" })
 	@ResponseBody
-	public String addUserGroup(String name, String description, HttpSession session) {
+	public String addUserGroup(@RequestParam String name, @RequestParam String description, HttpSession session) {
 		GroupRes rs = new GroupRes();
-		if (StringUtils.isEmpty(name) || name.length() >= 250) {
-			rs.setStatus(Status.NAME_ERROR);
-		} else {
-			try {
-				UserGroup ug = new UserGroup(name, description);
-				ug.setCreateTime(new Timestamp(System.currentTimeMillis()));
-				ug.setCreator(getUserId(session));
-				userService.addUserGroup(ug);
-				rs.setStatus(Status.USERGROUP_ADD_SUCCESS);
-				rs.setGroupId(ug.getId());
-			} catch (Exception e) {
-				rs.setStatus(Status.SERVER_ERROR);
-				log.error(e.getMessage(), e);
-			}
-		}
-		return XmlUtil.parse(rs);
+		UserGroup ug = new UserGroup(name, description);
+		ug.setCreateTime(new Timestamp(System.currentTimeMillis()));
+		ug.setCreator(getUserId(session));
+		userService.addUserGroup(ug);
+		rs.setStatus(Status.ADD_SUCCESS);
+		rs.setGroupId(ug.getId());
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -65,17 +57,11 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=DeleteUserGroup" })
 	@ResponseBody
-	public String deleteUserGroup(Integer groupid) {
-		log.info("groupid:" + groupid);
+	public String deleteUserGroup(@RequestParam Integer groupid) {
 		ResStatus rs = new ResStatus();
-		if (StringUtils.isEmpty(groupid)) {
-			rs.setStatus(Status.GROUPID_IS_EMPTY);
-		} else {
-			userService.delUserGroup(groupid);
-			rs.setStatus(Status.USERGROUP_DEL_SUCCESS);
-
-		}
-		return XmlUtil.parse(rs);
+		userService.delUserGroup(groupid);
+		rs.setStatus(Status.DEL_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -88,15 +74,12 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=ModifyUserGroup" })
 	@ResponseBody
-	public String modifyUserGroup(Integer groupid, String newname, String newdesc) {
+	public String modifyUserGroup(@RequestParam Integer groupid,
+			String newname, String newdesc) {
 		ResStatus rs = new ResStatus();
-		if (StringUtils.isEmpty(groupid) || StringUtils.isEmpty(newname)) {
-			rs.setStatus(Status.PARAMETER_ERROR);
-		} else {
-			userService.modifyUserGroup(groupid, newname, newdesc);
-			rs.setStatus(Status.USERGROUP_MODIFY_SUCCESS);
-		}
-		return XmlUtil.parse(rs);
+		userService.modifyUserGroup(groupid, newname, newdesc);
+		rs.setStatus(Status.MODIFY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -112,12 +95,12 @@ public class UserController extends BaseController {
 		try {
 			userGroupList = userService.queryUserGroup();
 			log.info(userGroupList);
-			rs.setStatus(Status.USERGROUP_QUERY_SUCCESS);
+			rs.setStatus(Status.QUERY_SUCCESS);
 		} catch (Exception e) {
 			rs.setStatus(Status.SERVER_ERROR);
 			log.error(e.getMessage(), e);
 		}
-		return XmlUtil.parse(rs, userGroupList);
+		return ResponseUtils.parse(rs, userGroupList);
 	}
 
 	/**
@@ -127,18 +110,13 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=AddUser" })
 	@ResponseBody
-	public String addUser(String username, String fullname, String password, Integer groupid) {
+	public String addUser(@RequestParam String username, @RequestParam String fullname, @RequestParam String password, @RequestParam Integer groupid) {
 		AddUserRes rs = new AddUserRes();
-		try {
-			User u = new User(username, password, fullname, groupid);
-			userService.addUser(u);
-			rs.setUserid(u.getUserId());
-			rs.setStatus(Status.USER_ADD_SUCCESS);
-		} catch (Exception e) {
-			rs.setStatus(Status.SERVER_ERROR);
-			log.error(e.getMessage(), e);
-		}
-		return XmlUtil.parse(rs);
+		User u = new User(username, password, fullname, groupid);
+		userService.addUser(u);
+		rs.setUserid(u.getUserId());
+		rs.setStatus(Status.ADD_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -148,16 +126,11 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=DeleteUser" })
 	@ResponseBody
-	public String deleteUser(Integer userid) {
+	public String deleteUser(@RequestParam Integer userid) {
+		userService.delUser(userid);
 		ResStatus rs = new ResStatus();
-		try {
-			userService.delUser(userid);
-			rs.setStatus(Status.USER_DEL_SUCCESS);
-		} catch (Exception e) {
-			rs.setStatus(Status.SERVER_ERROR);
-			log.error(e.getMessage(), e);
-		}
-		return XmlUtil.parse(rs);
+		rs.setStatus(Status.DEL_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -174,7 +147,8 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=ModifyUser" })
 	@ResponseBody
-	public Object modifyUser(Integer userid, String username, String fullname, Byte blocked, Integer groupid, Byte update_time_regular, String password) {
+	public Object modifyUser(@RequestParam Integer userid, String username, String fullname, Byte blocked, Integer groupid, Byte update_time_regular,
+			String password) {
 		ResStatus rs = new ResStatus();
 		if (StringUtils.isEmpty(userid) || StringUtils.isEmpty(username) || StringUtils.isEmpty(fullname) || StringUtils.isEmpty(blocked)
 				|| StringUtils.isEmpty(groupid) || StringUtils.isEmpty(update_time_regular) || StringUtils.isEmpty(password)) {
@@ -183,13 +157,13 @@ public class UserController extends BaseController {
 			try {
 				User user = new User(userid, username, fullname, blocked, groupid, update_time_regular, password);
 				userService.modifyUser(user);
-				rs.setStatus(Status.USER_MODIFY_SUCCESS);
+				rs.setStatus(Status.MODIFY_SUCCESS);
 			} catch (Exception e) {
 				rs.setStatus(Status.SERVER_ERROR);
 				log.error(e.getMessage(), e);
 			}
 		}
-		return XmlUtil.parse(rs);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -204,11 +178,11 @@ public class UserController extends BaseController {
 		List<UserVo> userList = null;
 		try {
 			userList = userService.queryUser();
-			rs.setStatus(Status.USER_QUERY_SUCCESS);
+			rs.setStatus(Status.QUERY_SUCCESS);
 		} catch (Exception e) {
 			rs.setStatus(Status.SERVER_ERROR);
 			log.error(e.getMessage(), e);
 		}
-		return XmlUtil.parse(rs, userList);
+		return ResponseUtils.parse(rs, userList);
 	}
 }

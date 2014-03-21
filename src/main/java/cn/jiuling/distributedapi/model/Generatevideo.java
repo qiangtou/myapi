@@ -628,7 +628,7 @@ public class Generatevideo implements java.io.Serializable {
 		this.objSearchByRegion = objSearchByRegion;
 	}
 
-	@Column(name = "obj_request_region", length = 65535)
+	@Column(name = "obj_request_region")
 	public String getObjRequestRegion() {
 		return this.objRequestRegion;
 	}

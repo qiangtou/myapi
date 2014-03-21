@@ -1,6 +1,8 @@
 package cn.jiuling.distributedapi.exception;
 
 import org.apache.log4j.Logger;
+import org.hibernate.ObjectNotFoundException;
+import org.springframework.orm.hibernate3.HibernateObjectRetrievalFailureException;
 
 import cn.jiuling.distributedapi.Vo.Status;
 
@@ -30,8 +32,10 @@ public class ServiceException extends RuntimeException {
 	public ServiceException(Status status, Throwable cause) {
 		this(status.getDesc(), cause);
 		if (cause instanceof ServiceException) {
-			ServiceException se = (ServiceException) cause;
-			this.status = se.getStatus();
+			ServiceException s = (ServiceException) cause;
+			this.status = s.getStatus();
+		} else if (cause instanceof ObjectNotFoundException || cause instanceof HibernateObjectRetrievalFailureException) {
+			this.status = Status.OBJECT_IS_NOT_EXIST;
 		} else {
 			this.status = status;
 		}

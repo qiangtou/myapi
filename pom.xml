@@ -18,7 +18,7 @@
 			<version>4.9</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- log --> 
+		<!-- log -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -114,6 +114,11 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.9.10</version>
 		</dependency>
+		<dependency>
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+			<version>1.1.4</version>
+		</dependency>
 		<!-- jsp标签库 -->
 		<dependency>
 			<groupId>jstl</groupId>
@@ -141,6 +146,7 @@
 				<db.pw>Ast4HS</db.pw>
 				<db.name>test</db.name>
 				<hbm2ddl.auto>update</hbm2ddl.auto>
+				<log4j.rootLogger>info,myconsole</log4j.rootLogger>
 			</properties>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -154,12 +160,25 @@
 				<db.pw>Ast4HS</db.pw>
 				<db.name>astvs1v20_db</db.name>
 				<hbm2ddl.auto>none</hbm2ddl.auto>
-			</properties>			
+				<log4j.rootLogger>info,myfile</log4j.rootLogger>
+			</properties>
+		</profile>
+		<profile>
+			<id>local</id>
+			<properties>
+				<db.url>localhost\:3306</db.url>
+				<db.user>root</db.user>
+				<db.pw>root</db.pw>
+				<db.name>test</db.name>
+				<hbm2ddl.auto>update</hbm2ddl.auto>
+				<log4j.rootLogger>info,myconsole</log4j.rootLogger>
+			</properties>
 		</profile>
 	</profiles>
 	<build>
 		<!--<finalName>api</finalName>
-		--><plugins>
+		-->
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -189,7 +208,7 @@
 		</plugins>
 		<resources>
 			<resource>
-				<directory>src/main/resources</directory>				
+				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 				<excludes>
 					<exclude>**/webdefault.xml</exclude>
@@ -197,13 +216,13 @@
 			</resource>
 		</resources>
 		<testResources>
-        <testResource>
-            <directory>src/test/resources</directory>
-            <filtering>true</filtering>
-            <excludes>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+				<excludes>
 					<exclude>**/webdefault.xml</exclude>
-			</excludes>
-        </testResource>
-    </testResources>
+				</excludes>
+			</testResource>
+		</testResources>
 	</build>
 </project>

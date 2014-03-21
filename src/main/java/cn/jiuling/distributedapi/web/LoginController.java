@@ -14,7 +14,7 @@ import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.model.User;
 import cn.jiuling.distributedapi.service.UserService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(produces = "text/html;charset=utf-8")
@@ -35,25 +35,23 @@ public class LoginController extends BaseController {
 	@ResponseBody
 	public String login(String username, String password, HttpSession session) {
 		String res;
-		User user = new User(username, password);
-		logger.info(user);
-		user = valideUser(user);
 		ResStatus rs = new ResStatus();
-		if (null != user) {
-			LoginUserVo loginUser = new LoginUserVo();
-			loginUser.setUserid(user.getUserId());
-			loginUser.setGroupId(user.getGroupId());
-			loginUser.setTaskPriority(user.getTaskPriority());
-			// TODO User.singleormulti是否允许外部登陆默认值是什么?
-			loginUser.setSingleormulti("");
-
-			session.setAttribute("userName", user.getUserName());
-			session.setAttribute("userId", user.getUserId());
-			rs.setStatus(Status.LOGIN_SUCCESS);
-			res = XmlUtil.parse(rs, loginUser, false);
-		} else {
+		try {
+			User user = new User(username, password);
+			logger.info(user);
+			LoginUserVo loginUser = userService.getLoginUser(user);
+			if (null != loginUser) {
+				session.setAttribute("userName", user.getUserName());
+				session.setAttribute("userId", user.getUserId());
+				rs.setStatus(Status.LOGIN_SUCCESS);
+				res = ResponseUtils.parse(rs, loginUser, false);
+			} else {
+				rs.setStatus(Status.LOGIN_FAIL);
+				res = ResponseUtils.parse(rs);
+			}
+		} catch (Exception e) {
 			rs.setStatus(Status.LOGIN_FAIL);
-			res = XmlUtil.parse(rs);
+			res = ResponseUtils.parse(rs);
 		}
 		return res;
 	}
@@ -63,14 +61,14 @@ public class LoginController extends BaseController {
 	public String logout(HttpSession session) {
 		ResStatus rs = new ResStatus(Status.LOGOUT_SUCCESS);
 		session.invalidate();
-		return XmlUtil.parse(rs);
+		return ResponseUtils.parse(rs);
 	}
 
 	@RequestMapping(value = "logfail.php")
 	@ResponseBody
 	public String logfail(HttpSession session) {
 		ResStatus rs = new ResStatus(Status.LOGIN_FAIL);
-		return XmlUtil.parse(rs);
+		return ResponseUtils.parse(rs);
 	}
 
 	private User valideUser(User user) {

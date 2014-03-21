@@ -14,7 +14,7 @@ public class PropertiesUtils {
 		try {
 			InputStream fis = PropertiesUtils.class.getClassLoader().getResourceAsStream("parameter.properties");
 			p.load(fis);
-			value = p.getProperty(key);
+			value = new String(p.getProperty(key).getBytes("ISO-8859-1"), "utf-8");
 		} catch (Exception e) {
 			logger.error("读取属性文件出错!!", e);
 		}

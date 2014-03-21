@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<config>
+  <zipSpace>1024</zipSpace><!--快照文件夹空间 MB-->
+  <ftpSpace>2048</ftpSpace><!--FTP上传目录空间 MB-->
+  <summarySpace>1024</summarySpace><!--摘要视频生成空间 MB-->
+  <transcodeSpace>2048</transcodeSpace><!--转码空间 MB-->
+  <orgvideofragment>512</orgvideofragment><!--原始视频片段空间 MB-->
+  <server_version>3.0.0.2</server_version>
+  <tokensrv>%_no_token_%</tokensrv>
+  <gis_init_longitude>22.55</gis_init_longitude>
+  <gis_init_latitude>114.07</gis_init_latitude>
+</config>

@@ -26,7 +26,7 @@ public class CameraServiceImpl implements CameraService {
 		try {
 			cameraDao.save(c);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CAMERA_ADD_ERROR, e);
+			throw new ServiceException(Status.ADD_ERROR, e);
 		}
 
 	}
@@ -38,7 +38,7 @@ public class CameraServiceImpl implements CameraService {
 			BeanUtils.copyProperties(c, camera, new String[] { "caseId", "createtime", "ownerid", "isDeleted" });
 			cameraDao.save(camera);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CAMERA_MODIFY_ERROR, e);
+			throw new ServiceException(Status.MODIFY_ERROR, e);
 		}
 
 	}
@@ -49,7 +49,7 @@ public class CameraServiceImpl implements CameraService {
 			List list = cameraDao.queryCamera("caseId", caseid);
 			return copyList(list);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CAMERA_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class CameraServiceImpl implements CameraService {
 			List list = cameraDao.queryCamera("id", cameraid);
 			return copyList(list);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CAMERA_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 }

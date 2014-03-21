@@ -11,7 +11,7 @@ import cn.jiuling.distributedapi.Vo.CaseReportVo;
 import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.service.CaseService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(produces = "text/html;charset=utf-8")
@@ -30,7 +30,7 @@ public class CaseReportController extends BaseController {
 	@ResponseBody
 	public String queryCaseReport(@RequestParam Long caseid) {
 		CaseReportVo c = caseService.queryCaseReport(caseid);
-		ResStatus rs = new ResStatus(Status.CASEVIDEO_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, c);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, c);
 	}
 }

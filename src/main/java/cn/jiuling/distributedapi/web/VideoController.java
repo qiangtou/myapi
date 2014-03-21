@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
 import cn.jiuling.distributedapi.Vo.IdRes;
+import cn.jiuling.distributedapi.Vo.QueryTaskVo;
 import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.Vo.TotalRes;
 import cn.jiuling.distributedapi.service.VideoService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(value = "server.php", produces = "text/html;charset=utf-8")
@@ -34,24 +35,23 @@ public class VideoController extends BaseController {
 	@RequestMapping(params = "command=QueryVideo")
 	@ResponseBody
 	public String queryVideo(@RequestParam Long cameraid, Long userid) {
+
 		List list = videoService.queryVideo(cameraid, userid);
-		TotalRes rs = new TotalRes(Status.VIDEO_QUERY_SUCCESS, list.size());
-		return XmlUtil.parse(rs, list);
+		TotalRes rs = new TotalRes(Status.QUERY_SUCCESS, list.size());
+		return ResponseUtils.parse(rs, list);
 	}
 
 	/**
-	 * TODO 查询视频分析列表 缺少表exttaskstatus
+	 * 查询视频分析列表
 	 * 
 	 * @param uploadvideoid
 	 * @return
 	 */
 	@RequestMapping(params = "command=QueryTask")
 	@ResponseBody
-	public String queryTask(@RequestParam Long uploadvideoid) {
-		// List list = videoService.queryTask(uploadvideoid);
-		// TotalRes rs = new TotalRes(Status.VIDEO_QUERY_SUCCESS, list.size());
-		// return XmlUtil.parse(rs, list);
-		return "";
+	public String queryTask(@RequestParam Integer uploadvideoid) {
+		List<QueryTaskVo> list = videoService.queryTask(uploadvideoid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), list);
 	}
 
 	/**
@@ -66,8 +66,8 @@ public class VideoController extends BaseController {
 	@ResponseBody
 	public String modifyVideo(@RequestParam Long videoid, Timestamp record_time, Long userid) {
 		videoService.modifyVideo(videoid, record_time, userid);
-		ResStatus rs = new ResStatus(Status.VIDEO_MODIFY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.MODIFY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -84,8 +84,8 @@ public class VideoController extends BaseController {
 	public String add3rdVideo(@RequestParam Long cameraid, @RequestParam String srcurl, String platformname,
 			@RequestParam(required = false, defaultValue = "0") Short isautosubmit) {
 		long id = videoService.add3rdVideo(cameraid, srcurl, platformname, isautosubmit);
-		IdRes rs = new IdRes(Status.VIDEO_ADD_SUCCESS, id);
-		return XmlUtil.parse(rs);
+		IdRes rs = new IdRes(Status.ADD_SUCCESS, id);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -101,8 +101,8 @@ public class VideoController extends BaseController {
 	@ResponseBody
 	public String query3rdVideoStatus(@RequestParam Long id) {
 		DownloadTasksVo d = videoService.query3rdVideoStatus(id);
-		ResStatus rs = new ResStatus(Status.VIDEO_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, d, false);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, d, false);
 	}
 
 	/**
@@ -133,7 +133,7 @@ public class VideoController extends BaseController {
 		Timestamp end = new Timestamp(endTime == -1 ? System.currentTimeMillis() : endTime);
 		Timestamp start = new Timestamp(startTime);
 		List list = videoService.query3rdVideoList(cameraid, status, start, end, index, count);
-		ResStatus rs = new ResStatus(Status.VIDEO_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, list);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, list);
 	}
 }

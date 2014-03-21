@@ -2,6 +2,7 @@ package cn.jiuling.distributedapi.service;
 
 import java.util.List;
 
+import cn.jiuling.distributedapi.Vo.LoginUserVo;
 import cn.jiuling.distributedapi.Vo.UserVo;
 import cn.jiuling.distributedapi.model.User;
 import cn.jiuling.distributedapi.model.UserGroup;
@@ -26,5 +27,7 @@ public interface UserService {
 	public void modifyUser(User user);
 
 	public List<UserVo> queryUser();
+
+	public LoginUserVo getLoginUser(User user);
 
 }

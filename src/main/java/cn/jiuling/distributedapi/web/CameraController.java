@@ -14,8 +14,9 @@ import cn.jiuling.distributedapi.Vo.CameraRes;
 import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.model.Camera;
+import cn.jiuling.distributedapi.model.User;
 import cn.jiuling.distributedapi.service.CameraService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(value = "server.php", produces = "text/html;charset=utf-8")
@@ -33,8 +34,8 @@ public class CameraController extends BaseController {
 					direction, longitude, latitude, description, createtime,
 					calibration, video_type);
 		cameraService.addCamera(c);
-		CameraRes rs = new CameraRes(Status.CAMERA_ADD_SUCCESS, c);
-		return XmlUtil.parse(rs);
+		CameraRes rs = new CameraRes(Status.ADD_SUCCESS, c);
+		return ResponseUtils.parse(rs);
 	}
 
 	@RequestMapping(params = { "command=ModifyCamera" })
@@ -47,8 +48,8 @@ public class CameraController extends BaseController {
 				calibration, video_type);
 		c.setId(cameraid);
 		cameraService.modifyCamera(c);
-		ResStatus rs = new ResStatus(Status.CAMERA_MODIFY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.MODIFY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 	/**
@@ -61,8 +62,8 @@ public class CameraController extends BaseController {
 	@ResponseBody
 	public String queryCamera(@RequestParam Long caseid) {
 		List list = cameraService.queryCameraByCaseId(caseid);
-		ResStatus rs = new ResStatus(Status.CAMERA_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, list);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, list);
 	}
 
 	/**
@@ -75,8 +76,26 @@ public class CameraController extends BaseController {
 	@ResponseBody
 	public String queryCameraInfo(@RequestParam Long cameraid) {
 		List list = cameraService.queryCameraByCameraid(cameraid);
-		ResStatus rs = new ResStatus(Status.CAMERA_QUERY_SUCCESS);
-		return XmlUtil.parse(rs, list);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, list);
+	}
+
+	/**
+	 * 查询监控点信息
+	 * 
+	 * @param cameraid
+	 * @return
+	 */
+	@RequestMapping(value = "/jjjj.do", params = "command=ttt")
+	@ResponseBody
+	public String fdsgsdfddCamera(@RequestParam Long caseid, @RequestParam String cameratitle,
+			@RequestParam(required = false, defaultValue = "77") Short serialnumber) {
+		log.info("caseid:" + caseid);
+		log.info("cameratitle:" + cameratitle);
+		log.info("serialnumber:" + serialnumber);
+
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs, new User());
 	}
 
 }

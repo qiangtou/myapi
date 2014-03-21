@@ -17,7 +17,6 @@ public class VideoVo {
 	private String srcUrl;
 	@Node("DestUrl")
 	private String destUrl;
-	// TODO downloadURL需要手动计算
 	private String downloadURL;
 	@Node("duration")
 	private Integer duration;

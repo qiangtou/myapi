@@ -16,6 +16,8 @@ import javax.persistence.Table;
 @Table(name = "useruploadvideo")
 public class Useruploadvideo implements java.io.Serializable {
 
+	public static final Short AUTOSUBMIT = 2;
+	public static final Short NON_AutoSubmit = 0;
 	// Fields
 
 	private Long userUploadVideoId;

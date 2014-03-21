@@ -43,7 +43,7 @@ public class CaseServiceImpl implements CaseService {
 			caseGroupDao.save(ug);
 			return ug;
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASEGROUP_ADD_ERROR, e);
+			throw new ServiceException(Status.ADD_ERROR, e);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class CaseServiceImpl implements CaseService {
 			CaseGroup g = caseGroupDao.load(groupid);
 			caseGroupDao.delete(g);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASEGROUP_DEL_ERROR, e);
+			throw new ServiceException(Status.DEL_ERROR, e);
 		}
 	}
 
@@ -65,7 +65,7 @@ public class CaseServiceImpl implements CaseService {
 			g.setDescription(caseGroup.getDescription());
 			caseGroupDao.update(g);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASEGROUP_MODIFY_ERROR, e);
+			throw new ServiceException(Status.MODIFY_ERROR, e);
 		}
 	}
 
@@ -74,7 +74,7 @@ public class CaseServiceImpl implements CaseService {
 		try {
 			return caseGroupDao.queryCaseGroup();
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASEGROUP_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -83,7 +83,7 @@ public class CaseServiceImpl implements CaseService {
 		try {
 			caseDao.save(c);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASE_ADD_ERROR, e);
+			throw new ServiceException(Status.ADD_ERROR, e);
 		}
 
 	}
@@ -107,7 +107,7 @@ public class CaseServiceImpl implements CaseService {
 			c.setSerialnumber(newCase.getSerialnumber());
 			caseDao.update(c);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASE_MODIFY_ERROR, e);
+			throw new ServiceException(Status.MODIFY_ERROR, e);
 		}
 
 	}
@@ -118,7 +118,7 @@ public class CaseServiceImpl implements CaseService {
 			List list = caseDao.query(startindex, count, sorttype, isDescend);
 			return copyList(list);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASE_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class CaseServiceImpl implements CaseService {
 			List list = caseDao.searchCase(type, value, time, startindex, count);
 			return copyList(list);
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASE_SEARCH_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -155,7 +155,7 @@ public class CaseServiceImpl implements CaseService {
 			BeanUtils.copyProperties(c, cv);
 			return cv;
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASE_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -165,7 +165,7 @@ public class CaseServiceImpl implements CaseService {
 			CaseVideoVo c = caseDao.queryCaseVideo(caseid);
 			return c;
 		} catch (Exception e) {
-			throw new ServiceException(Status.CASEVIDEO_QUERY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 

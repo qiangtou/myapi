@@ -3,6 +3,7 @@ package cn.jiuling.distributedapi.web;
 import java.sql.Timestamp;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +14,7 @@ import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
-import cn.jiuling.distributedapi.utils.XmlUtil;
+import cn.jiuling.distributedapi.utils.ResponseUtils;
 
 @Controller
 @RequestMapping(produces = "text/html;charset=utf-8")
@@ -34,14 +35,17 @@ public class Video4AddController extends BaseController {
 	 */
 	@RequestMapping("addvideo.php")
 	@ResponseBody
-	public String addvideo(@RequestParam Long cameraid, @RequestParam String video_filename, @RequestParam Timestamp record_time,
+	public String addvideo(HttpSession session, @RequestParam Long cameraid, @RequestParam String video_filename,
+			@RequestParam Timestamp record_time,
 			Timestamp createtime, @RequestParam(required = false, defaultValue = "0") Short isautosubmit, Short video_type) {
+		// TODO 添加视频id从session中取?
+		Integer uid = getUserId(session);
 
 		Useruploadvideo v = new Useruploadvideo(cameraid, video_filename, record_time,
 					createtime, isautosubmit, video_type);
 
-		ResStatus rs = new ResStatus(Status.VIDEO_QUERY_SUCCESS);
-		return XmlUtil.parse(rs);
+		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
+		return ResponseUtils.parse(rs);
 	}
 
 }

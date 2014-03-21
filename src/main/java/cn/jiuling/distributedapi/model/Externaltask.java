@@ -95,6 +95,15 @@ public class Externaltask implements java.io.Serializable {
 	private Short summaryHeight;
 	private Short isSetTripArea;
 	private String tripArea;
+	private Short snapType;
+	private String taskName;
+	private Short enableSearchByImage;
+	private String requestImageUrl;
+	private String requestImageData;
+	private String requestMaskUrl;
+	private String requestMaskData;
+	private Float dropFrmRate;
+	private Short searchScope;
 	private Timestamp timestamp;
 	private String testflag;
 
@@ -108,7 +117,7 @@ public class Externaltask implements java.io.Serializable {
 	public Externaltask(Short taskType, String sourceUrl, Float framerate, Short isContain, Short objEnable, Short objType, Short objSubtype,
 			Short colorTolerance, Short enableAvgcolor, Integer retrieveAvgcolor, Short enableUppercolor, Integer retrieveUppercolor, Short enableLowercolor,
 			Integer retrieveLowercolor, Short enableCarnum, Short carnumStatus, Short objHeight, Short objWidth, Short objDepth, Integer timePeirodIndicator,
-			Integer timePeirodStart, Integer timePeirodEnd, Integer startFrame, Integer endFrame, Timestamp timestamp) {
+			Integer timePeirodStart, Integer timePeirodEnd, Integer startFrame, Integer endFrame, Short snapType, Timestamp timestamp) {
 		this.taskType = taskType;
 		this.sourceUrl = sourceUrl;
 		this.framerate = framerate;
@@ -133,6 +142,7 @@ public class Externaltask implements java.io.Serializable {
 		this.timePeirodEnd = timePeirodEnd;
 		this.startFrame = startFrame;
 		this.endFrame = endFrame;
+		this.snapType = snapType;
 		this.timestamp = timestamp;
 	}
 
@@ -149,7 +159,8 @@ public class Externaltask implements java.io.Serializable {
 			Boolean objSearchByUpperColor, Float objRequestUpperB, Float objRequestUpperG, Float objRequestUpperR, Boolean objSearchByLowerColor,
 			Float objRequestLowerB, Float objRequestLowerG, Float objRequestLowerR, Float rbgToleranceInPct, Boolean objSearchByHeight,
 			Float objRequestObjHeight, Boolean objSearchByMov, String objRequestMovVertics, Integer objRequestMovVerticsNum, Short summaryWidth,
-			Short summaryHeight, Short isSetTripArea, String tripArea, Timestamp timestamp, String testflag) {
+			Short summaryHeight, Short isSetTripArea, String tripArea, Short snapType, String taskName, Short enableSearchByImage, String requestImageUrl,
+			String requestImageData, String requestMaskUrl, String requestMaskData, Float dropFrmRate, Short searchScope, Timestamp timestamp, String testflag) {
 		this.userUploadVideoId = userUploadVideoId;
 		this.userid = userid;
 		this.configStatus = configStatus;
@@ -226,6 +237,15 @@ public class Externaltask implements java.io.Serializable {
 		this.summaryHeight = summaryHeight;
 		this.isSetTripArea = isSetTripArea;
 		this.tripArea = tripArea;
+		this.snapType = snapType;
+		this.taskName = taskName;
+		this.enableSearchByImage = enableSearchByImage;
+		this.requestImageUrl = requestImageUrl;
+		this.requestImageData = requestImageData;
+		this.requestMaskUrl = requestMaskUrl;
+		this.requestMaskData = requestMaskData;
+		this.dropFrmRate = dropFrmRate;
+		this.searchScope = searchScope;
 		this.timestamp = timestamp;
 		this.testflag = testflag;
 	}
@@ -924,6 +944,87 @@ public class Externaltask implements java.io.Serializable {
 
 	public void setTripArea(String tripArea) {
 		this.tripArea = tripArea;
+	}
+
+	@Column(name = "snap_type", nullable = false)
+	public Short getSnapType() {
+		return this.snapType;
+	}
+
+	public void setSnapType(Short snapType) {
+		this.snapType = snapType;
+	}
+
+	@Column(name = "taskName", length = 56)
+	public String getTaskName() {
+		return this.taskName;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	@Column(name = "enable_search_by_image")
+	public Short getEnableSearchByImage() {
+		return this.enableSearchByImage;
+	}
+
+	public void setEnableSearchByImage(Short enableSearchByImage) {
+		this.enableSearchByImage = enableSearchByImage;
+	}
+
+	@Column(name = "request_image_url")
+	public String getRequestImageUrl() {
+		return this.requestImageUrl;
+	}
+
+	public void setRequestImageUrl(String requestImageUrl) {
+		this.requestImageUrl = requestImageUrl;
+	}
+
+	@Column(name = "request_image_data")
+	public String getRequestImageData() {
+		return this.requestImageData;
+	}
+
+	public void setRequestImageData(String requestImageData) {
+		this.requestImageData = requestImageData;
+	}
+
+	@Column(name = "request_mask_url")
+	public String getRequestMaskUrl() {
+		return this.requestMaskUrl;
+	}
+
+	public void setRequestMaskUrl(String requestMaskUrl) {
+		this.requestMaskUrl = requestMaskUrl;
+	}
+
+	@Column(name = "request_mask_data")
+	public String getRequestMaskData() {
+		return this.requestMaskData;
+	}
+
+	public void setRequestMaskData(String requestMaskData) {
+		this.requestMaskData = requestMaskData;
+	}
+
+	@Column(name = "drop_frm_rate", precision = 12, scale = 0)
+	public Float getDropFrmRate() {
+		return this.dropFrmRate;
+	}
+
+	public void setDropFrmRate(Float dropFrmRate) {
+		this.dropFrmRate = dropFrmRate;
+	}
+
+	@Column(name = "search_scope")
+	public Short getSearchScope() {
+		return this.searchScope;
+	}
+
+	public void setSearchScope(Short searchScope) {
+		this.searchScope = searchScope;
 	}
 
 	@Column(name = "timestamp", nullable = false, length = 19)
