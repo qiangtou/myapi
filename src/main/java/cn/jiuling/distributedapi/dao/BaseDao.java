@@ -10,6 +10,8 @@ public interface BaseDao<T> {
 
 	public T load(Serializable id);
 
+	public T get(Serializable id);
+
 	public void update(T t);
 
 	public void saveOrUpdate(T t);

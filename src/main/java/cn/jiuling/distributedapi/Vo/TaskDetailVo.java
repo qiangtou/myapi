@@ -1,425 +1,372 @@
 package cn.jiuling.distributedapi.Vo;
 
+import java.sql.Timestamp;
+
 public class TaskDetailVo {
-	/*<type>2</type>
-	<filename>1.avi</filename>
-	<fileSize>24560000</fileSize>
-	<sourceUrl>file://C:\VideoInvestigation\VIServer\DAT\AstVS_1v2\orgvideos\1\1\С С.avi</sourceUrl>
-	<thickness>0</thickness>
-	<sensitivity>0</sensitivity>
-	<framerate>25</framerate>
-	    <UDR_exist>0</UDR_exist>
-	    <UDR_setting>
-	      <udr>
-	        <attr>1</attr>
-	        <polynum>1</polynum>
-	        <polyinfo>
-	         <vertnum>5</vertnum>
-	         <vertinfo>
-	           <x>0.3</x> 
-	           <y>0.1</y> 
-	           <x>0.6</x> 
-	           <y>0.3</y> 
-	           <x>0.5</x> 
-	           <y>0.6</y> 
-	           <x>0.1</x> 
-	           <y>0.6</y> 
-	           <x>0.0</x> 
-	           <y>0.3</y> 
-	        </vertinfo>
-	        </polyinfo>
-	      </udr>
-	    </UDR_setting>*/
-	private Object type;
-	private Object filename;
-	private Object fileSize;
-	private Object sourceUrl;
-	private Object thickness;
-	private Object sensitivity;
-	private Object framerate;
-	private Object UDR_exist;
-	private Object UDR_setting;
-	/*
-	 	<obj_enable>0</obj_enable>
-		<obj_type>0</obj_type>
-		<obj_subtype>0</obj_subtype>
-		<color_tolerance>0</color_tolerance>
-		<enable_avgcolor>0</enable_avgcolor>
-		<retrieve_avgcolor>0</retrieve_avgcolor>
-		<enable_uppercolor>0</enable_uppercolor>
-		<retrieve_uppercolor>0</retrieve_uppercolor>
-		<enable_lowercolor>0</enable_lowercolor>
-		<retrieve_lowercolor>0</retrieve_lowercolor>
-		<enable_carnum>0</enable_carnum>
-		<retrieve_carnum>0</retrieve_carnum>
-	 */
-	private Object obj_enable;
-	private Object obj_type;
-	private Object obj_subtype;
-	private Object color_tolerance;
-	private Object enable_avgcolor;
-	private Object retrieve_avgcolor;
-	private Object enable_uppercolor;
-	private Object retrieve_uppercolor;
-	private Object enable_lowercolor;
-	private Object retrieve_lowercolor;
-	private Object enable_carnum;
-	private Object retrieve_carnum;
-	/*
-	 	<objHeight>0</objHeight>
-		<objWidth>0</objWidth>
-		<objDepth>0</objDepth>
-		<startFrame>0</startFrame>
-		<endFrame>5400000</endFrame>
-		<submitDate>2013-03-28 09:51:28</submitDate>
-		<summary_height>240</summary_height>
-		<summary_width>320</summary_width>
-		<isSetTripArea>1</isSetTripArea>
-	 */
-	private Object objHeight;
-	private Object objWidth;
-	private Object objDepth;
-	private Object startFrame;
-	private Object endFrame;
-	private Object submitDate;
-	private Object summary_height;
-	private Object summary_width;
-	private Object isSetTripArea;
-	/* TODO 这里要处理一下这个对象
-	 	<tripArea>
-		<pnum>4</pnum>
-		<dir>1</dir>
-		<pinfo>
-		<x1>0.169391</x1>
-		<y1>0.132673</y1>
-		<x2>0.968796</x2>
-		<y2>0.215842</y2>
-		<x3>0.789004</x3>
-		<y3>0.893069</y3>
-		<x4>0.075780</x4>
-		<y4>0.841584</y4>
-		</pinfo>
-		</tripArea>
-	 */
-	private Object tripArea;
-	/*
-	<task_priority>0</task_priority>
-	<taskName></ taskName >
-		<enable_search_by_image>0</enable_search_by_image>
-		<request_image_url></request_image_url>
-		<request_mask_url></request_mask_url>
-	<snap_type></snap_type>
-	<drop_frm_rate></drop_frm_rate>*/
-	private Object task_priority;
-	private Object taskName;
-	private Object enable_search_by_image;
-	private Object request_image_url;
-	private Object request_mask_url;
-	private Object snap_type;
-	private Object drop_frm_rate;
+	@Node("type")
+	private Short taskType;
+	@Node("run_time_speed")
+	private Integer runTimeSpeed;
+	private String sourceUrl;
+	private Short thickness;
+	private Integer sensitivity;
+	@Node("UDR_exist")
+	private Short udrExist;
+	@Node("UDR_setting")
+	private String udrSetting;
+	@Node("obj_enable")
+	private Short objEnable;
+	@Node("obj_type")
+	private Short objType;
+	@Node("obj_subtype")
+	private Short objSubtype;
+	@Node("color_tolerance")
+	private Short colorTolerance;
+	@Node("enable_avgcolor")
+	private Short enableAvgcolor;
+	@Node("retrieve_avgcolor")
+	private Integer retrieveAvgcolor;
 
-	public Object getType() {
-		return type;
+	@Node("enable_uppercolor")
+	private Short enableUppercolor;
+	@Node("retrieve_uppercolor")
+	private Integer retrieveUppercolor;
+	@Node("enable_lowercolor")
+	private Short enableLowercolor;
+	@Node("retrieve_lowercolor")
+	private Integer retrieveLowercolor;
+	@Node("enable_carnum")
+	private Short enableCarnum;
+	@Node("retrieve_carnum")
+	private String retrieveCarnum;
+
+	private Short objHeight;
+	private Short objWidth;
+	private Short objDepth;
+	private Integer startFrame;
+	private Integer endFrame;
+	@Node("submitDate")
+	private Timestamp timestamp;
+
+	@Node("obj_request_mov_vertics")
+	private String objRequestMovVertics;
+
+	@Node("summary_height")
+	private Short summaryWidth;
+	@Node("summary_width")
+	private Short summaryHeight;
+	private Short isSetTripArea;
+	@Node("trip_area")
+	private String tripArea;
+
+	@Node("task_priority")
+	private Integer taskPriority;
+	private String taskName;
+
+	@Node("enable_search_by_image")
+	private Short enableSearchByImage;
+	@Node("request_image_url")
+	private String requestImageUrl;
+	@Node("request_mask_url")
+	private String requestMaskUrl;
+	@Node("snap_type")
+	private Short snapType;
+	@Node("drop_frm_rate")
+	private Float dropFrmRate;
+
+	public Short getTaskType() {
+		return taskType;
 	}
 
-	public void setType(Object type) {
-		this.type = type;
+	public void setTaskType(Short taskType) {
+		this.taskType = taskType;
 	}
 
-	public Object getFilename() {
-		return filename;
+	public Integer getRunTimeSpeed() {
+		return runTimeSpeed;
 	}
 
-	public void setFilename(Object filename) {
-		this.filename = filename;
+	public void setRunTimeSpeed(Integer runTimeSpeed) {
+		this.runTimeSpeed = runTimeSpeed;
 	}
 
-	public Object getFileSize() {
-		return fileSize;
-	}
-
-	public void setFileSize(Object fileSize) {
-		this.fileSize = fileSize;
-	}
-
-	public Object getSourceUrl() {
+	public String getSourceUrl() {
 		return sourceUrl;
 	}
 
-	public void setSourceUrl(Object sourceUrl) {
+	public void setSourceUrl(String sourceUrl) {
 		this.sourceUrl = sourceUrl;
 	}
 
-	public Object getThickness() {
+	public Short getThickness() {
 		return thickness;
 	}
 
-	public void setThickness(Object thickness) {
+	public void setThickness(Short thickness) {
 		this.thickness = thickness;
 	}
 
-	public Object getSensitivity() {
+	public Integer getSensitivity() {
 		return sensitivity;
 	}
 
-	public void setSensitivity(Object sensitivity) {
+	public void setSensitivity(Integer sensitivity) {
 		this.sensitivity = sensitivity;
 	}
 
-	public Object getFramerate() {
-		return framerate;
+	public Short getUdrExist() {
+		return udrExist;
 	}
 
-	public void setFramerate(Object framerate) {
-		this.framerate = framerate;
+	public void setUdrExist(Short udrExist) {
+		this.udrExist = udrExist;
 	}
 
-	public Object getUDR_exist() {
-		return UDR_exist;
+	public String getUdrSetting() {
+		return udrSetting;
 	}
 
-	public void setUDR_exist(Object uDRExist) {
-		UDR_exist = uDRExist;
+	public void setUdrSetting(String udrSetting) {
+		this.udrSetting = udrSetting;
 	}
 
-	public Object getUDR_setting() {
-		return UDR_setting;
+	public Short getObjEnable() {
+		return objEnable;
 	}
 
-	public void setUDR_setting(Object uDRSetting) {
-		UDR_setting = uDRSetting;
+	public void setObjEnable(Short objEnable) {
+		this.objEnable = objEnable;
 	}
 
-	public Object getObj_enable() {
-		return obj_enable;
+	public Short getObjType() {
+		return objType;
 	}
 
-	public void setObj_enable(Object objEnable) {
-		obj_enable = objEnable;
+	public void setObjType(Short objType) {
+		this.objType = objType;
 	}
 
-	public Object getObj_type() {
-		return obj_type;
+	public Short getObjSubtype() {
+		return objSubtype;
 	}
 
-	public void setObj_type(Object objType) {
-		obj_type = objType;
+	public void setObjSubtype(Short objSubtype) {
+		this.objSubtype = objSubtype;
 	}
 
-	public Object getObj_subtype() {
-		return obj_subtype;
+	public Short getColorTolerance() {
+		return colorTolerance;
 	}
 
-	public void setObj_subtype(Object objSubtype) {
-		obj_subtype = objSubtype;
+	public void setColorTolerance(Short colorTolerance) {
+		this.colorTolerance = colorTolerance;
 	}
 
-	public Object getColor_tolerance() {
-		return color_tolerance;
+	public Short getEnableAvgcolor() {
+		return enableAvgcolor;
 	}
 
-	public void setColor_tolerance(Object colorTolerance) {
-		color_tolerance = colorTolerance;
+	public void setEnableAvgcolor(Short enableAvgcolor) {
+		this.enableAvgcolor = enableAvgcolor;
 	}
 
-	public Object getEnable_avgcolor() {
-		return enable_avgcolor;
+	public Integer getRetrieveAvgcolor() {
+		return retrieveAvgcolor;
 	}
 
-	public void setEnable_avgcolor(Object enableAvgcolor) {
-		enable_avgcolor = enableAvgcolor;
+	public void setRetrieveAvgcolor(Integer retrieveAvgcolor) {
+		this.retrieveAvgcolor = retrieveAvgcolor;
 	}
 
-	public Object getRetrieve_avgcolor() {
-		return retrieve_avgcolor;
+	public Short getEnableUppercolor() {
+		return enableUppercolor;
 	}
 
-	public void setRetrieve_avgcolor(Object retrieveAvgcolor) {
-		retrieve_avgcolor = retrieveAvgcolor;
+	public void setEnableUppercolor(Short enableUppercolor) {
+		this.enableUppercolor = enableUppercolor;
 	}
 
-	public Object getEnable_uppercolor() {
-		return enable_uppercolor;
+	public Integer getRetrieveUppercolor() {
+		return retrieveUppercolor;
 	}
 
-	public void setEnable_uppercolor(Object enableUppercolor) {
-		enable_uppercolor = enableUppercolor;
+	public void setRetrieveUppercolor(Integer retrieveUppercolor) {
+		this.retrieveUppercolor = retrieveUppercolor;
 	}
 
-	public Object getRetrieve_uppercolor() {
-		return retrieve_uppercolor;
+	public Short getEnableLowercolor() {
+		return enableLowercolor;
 	}
 
-	public void setRetrieve_uppercolor(Object retrieveUppercolor) {
-		retrieve_uppercolor = retrieveUppercolor;
+	public void setEnableLowercolor(Short enableLowercolor) {
+		this.enableLowercolor = enableLowercolor;
 	}
 
-	public Object getEnable_lowercolor() {
-		return enable_lowercolor;
+	public Integer getRetrieveLowercolor() {
+		return retrieveLowercolor;
 	}
 
-	public void setEnable_lowercolor(Object enableLowercolor) {
-		enable_lowercolor = enableLowercolor;
+	public void setRetrieveLowercolor(Integer retrieveLowercolor) {
+		this.retrieveLowercolor = retrieveLowercolor;
 	}
 
-	public Object getRetrieve_lowercolor() {
-		return retrieve_lowercolor;
+	public Short getEnableCarnum() {
+		return enableCarnum;
 	}
 
-	public void setRetrieve_lowercolor(Object retrieveLowercolor) {
-		retrieve_lowercolor = retrieveLowercolor;
+	public void setEnableCarnum(Short enableCarnum) {
+		this.enableCarnum = enableCarnum;
 	}
 
-	public Object getEnable_carnum() {
-		return enable_carnum;
+	public String getRetrieveCarnum() {
+		return retrieveCarnum;
 	}
 
-	public void setEnable_carnum(Object enableCarnum) {
-		enable_carnum = enableCarnum;
+	public void setRetrieveCarnum(String retrieveCarnum) {
+		this.retrieveCarnum = retrieveCarnum;
 	}
 
-	public Object getRetrieve_carnum() {
-		return retrieve_carnum;
-	}
-
-	public void setRetrieve_carnum(Object retrieveCarnum) {
-		retrieve_carnum = retrieveCarnum;
-	}
-
-	public Object getObjHeight() {
+	public Short getObjHeight() {
 		return objHeight;
 	}
 
-	public void setObjHeight(Object objHeight) {
+	public void setObjHeight(Short objHeight) {
 		this.objHeight = objHeight;
 	}
 
-	public Object getObjWidth() {
+	public Short getObjWidth() {
 		return objWidth;
 	}
 
-	public void setObjWidth(Object objWidth) {
+	public void setObjWidth(Short objWidth) {
 		this.objWidth = objWidth;
 	}
 
-	public Object getObjDepth() {
+	public Short getObjDepth() {
 		return objDepth;
 	}
 
-	public void setObjDepth(Object objDepth) {
+	public void setObjDepth(Short objDepth) {
 		this.objDepth = objDepth;
 	}
 
-	public Object getStartFrame() {
+	public Integer getStartFrame() {
 		return startFrame;
 	}
 
-	public void setStartFrame(Object startFrame) {
+	public void setStartFrame(Integer startFrame) {
 		this.startFrame = startFrame;
 	}
 
-	public Object getEndFrame() {
+	public Integer getEndFrame() {
 		return endFrame;
 	}
 
-	public void setEndFrame(Object endFrame) {
+	public void setEndFrame(Integer endFrame) {
 		this.endFrame = endFrame;
 	}
 
-	public Object getSubmitDate() {
-		return submitDate;
+	public Timestamp getTimestamp() {
+		return timestamp;
 	}
 
-	public void setSubmitDate(Object submitDate) {
-		this.submitDate = submitDate;
+	public void setTimestamp(Timestamp timestamp) {
+		this.timestamp = timestamp;
 	}
 
-	public Object getSummary_height() {
-		return summary_height;
+	public String getObjRequestMovVertics() {
+		return objRequestMovVertics;
 	}
 
-	public void setSummary_height(Object summaryHeight) {
-		summary_height = summaryHeight;
+	public void setObjRequestMovVertics(String objRequestMovVertics) {
+		this.objRequestMovVertics = objRequestMovVertics;
 	}
 
-	public Object getSummary_width() {
-		return summary_width;
+	public Short getSummaryWidth() {
+		return summaryWidth;
 	}
 
-	public void setSummary_width(Object summaryWidth) {
-		summary_width = summaryWidth;
+	public void setSummaryWidth(Short summaryWidth) {
+		this.summaryWidth = summaryWidth;
 	}
 
-	public Object getIsSetTripArea() {
+	public Short getSummaryHeight() {
+		return summaryHeight;
+	}
+
+	public void setSummaryHeight(Short summaryHeight) {
+		this.summaryHeight = summaryHeight;
+	}
+
+	public Short getIsSetTripArea() {
 		return isSetTripArea;
 	}
 
-	public void setIsSetTripArea(Object isSetTripArea) {
+	public void setIsSetTripArea(Short isSetTripArea) {
 		this.isSetTripArea = isSetTripArea;
 	}
 
-	public Object getTripArea() {
+	public String getTripArea() {
 		return tripArea;
 	}
 
-	public void setTripArea(Object tripArea) {
+	public void setTripArea(String tripArea) {
 		this.tripArea = tripArea;
 	}
 
-	public Object getTask_priority() {
-		return task_priority;
+	public Integer getTaskPriority() {
+		return taskPriority;
 	}
 
-	public void setTask_priority(Object taskPriority) {
-		task_priority = taskPriority;
+	public void setTaskPriority(Integer taskPriority) {
+		this.taskPriority = taskPriority;
 	}
 
-	public Object getTaskName() {
+	public String getTaskName() {
 		return taskName;
 	}
 
-	public void setTaskName(Object taskName) {
+	public void setTaskName(String taskName) {
 		this.taskName = taskName;
 	}
 
-	public Object getEnable_search_by_image() {
-		return enable_search_by_image;
+	public Short getEnableSearchByImage() {
+		return enableSearchByImage;
 	}
 
-	public void setEnable_search_by_image(Object enableSearchByImage) {
-		enable_search_by_image = enableSearchByImage;
+	public void setEnableSearchByImage(Short enableSearchByImage) {
+		this.enableSearchByImage = enableSearchByImage;
 	}
 
-	public Object getRequest_image_url() {
-		return request_image_url;
+	public String getRequestImageUrl() {
+		return requestImageUrl;
 	}
 
-	public void setRequest_image_url(Object requestImageUrl) {
-		request_image_url = requestImageUrl;
+	public void setRequestImageUrl(String requestImageUrl) {
+		this.requestImageUrl = requestImageUrl;
 	}
 
-	public Object getRequest_mask_url() {
-		return request_mask_url;
+	public String getRequestMaskUrl() {
+		return requestMaskUrl;
 	}
 
-	public void setRequest_mask_url(Object requestMaskUrl) {
-		request_mask_url = requestMaskUrl;
+	public void setRequestMaskUrl(String requestMaskUrl) {
+		this.requestMaskUrl = requestMaskUrl;
 	}
 
-	public Object getSnap_type() {
-		return snap_type;
+	public Short getSnapType() {
+		return snapType;
 	}
 
-	public void setSnap_type(Object snapType) {
-		snap_type = snapType;
+	public void setSnapType(Short snapType) {
+		this.snapType = snapType;
 	}
 
-	public Object getDrop_frm_rate() {
-		return drop_frm_rate;
+	public Float getDropFrmRate() {
+		return dropFrmRate;
 	}
 
-	public void setDrop_frm_rate(Object dropFrmRate) {
-		drop_frm_rate = dropFrmRate;
+	public void setDropFrmRate(Float dropFrmRate) {
+		this.dropFrmRate = dropFrmRate;
 	}
-
 }

@@ -5,10 +5,12 @@ import java.util.List;
 
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
-import cn.jiuling.distributedapi.Vo.QueryTaskListResultVo;
+import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
+import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.model.Externaltask;
+import cn.jiuling.distributedapi.model.Useruploadvideo;
 
 public interface VideoService {
 	public List queryVideo(Long cameraid, Long userid);
@@ -21,7 +23,7 @@ public interface VideoService {
 
 	public List query3rdVideoList(Long cameraid, Short status, Timestamp start, Timestamp end, Integer index, Integer count);
 
-	public QueryTaskListResultVo queryTaskList(String userid, Integer status, Timestamp startTime, Timestamp endTime, Integer index, Integer count);
+	public ListResultVo queryTaskList(String userid, Integer status, Timestamp startTime, Timestamp endTime, Integer index, Integer count);
 
 	public Externaltask submitTask(Integer userUploadVideoId, Short type, Short runTimeSpeed, String filename, Integer fileSize, String sourceUrl,
 			Short thickness,
@@ -41,7 +43,7 @@ public interface VideoService {
 			Short clockwise_point4_y,
 			Short isRegSet, String flowNumber, Short isContain);
 
-	public void addTranscodeTask(Long userid, String srcName, Short isAutoSubmit);
+	public Useruploadvideo addTranscodeTask(Long userid, String srcName, Short isAutoSubmit);
 
 	public ExttaskstatusVo queryExttaskstatus(String flowNumber);
 
@@ -53,8 +55,21 @@ public interface VideoService {
 	 * @param uploadvideoid
 	 * @return
 	 */
-	public TranscodeStatusVo queryTranscodeStatus(Integer uploadvideoid);
+	public TranscodeStatusVo queryTranscodeStatus(Long uploadvideoid);
 
-	public void queryTaskDetail(String flowNumber);
+	public TaskDetailVo queryTaskDetail(String flowNumber);
+
+	public ListResultVo getuploadtasklist(String userid, Integer status, Long startTime, Long endTime, Integer index, Integer count);
+
+	public String getsnapshotzipurl(String flownumber, String snapshotType, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo,
+			Short objType2);
+
+	public String getOrgvideoFragmenturl(String filename, Integer ss, Integer endpos);
+
+	public TaskDetailVo queryLastCfgInfo(Integer videoid);
+
+	public void addAutoAnalyse4Case(Integer caseid, Integer userid);
+
+	public void addAutoAnalyse4Camera(Integer cameraid, Integer userid);
 
 }

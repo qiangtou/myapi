@@ -72,9 +72,14 @@ public class Useruploadvideo implements java.io.Serializable {
 		this.frameRate = frameRate;
 	}
 
+	// (long, Timestamp, Timestamp, Long, String, String, Short, int, String,
+
+	// int, int, int, Short, int, String, int, int, int, null, null)
 	/** full constructor */
 	public Useruploadvideo(Long cameraId, Timestamp timestamp, Timestamp recordTime, Long userid, String srcUrl, String destUrl, Short status,
-			Integer lastErrCode, String lastErrMsg, Short progress, Integer retryCount, Integer lastTryVideoVendorType, Short isAutoSubmit, Short isDeleted,
+			Integer lastErrCode, String lastErrMsg,
+
+			Short progress, Integer retryCount, Integer lastTryVideoVendorType, Short isAutoSubmit, Short isDeleted,
 			String resolution, Integer duration, Integer space, Integer frameRate, Short videoType, String videoConfig) {
 		this.cameraId = cameraId;
 		this.timestamp = timestamp;

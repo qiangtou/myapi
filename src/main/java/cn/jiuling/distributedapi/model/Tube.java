@@ -1,5 +1,7 @@
 package cn.jiuling.distributedapi.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,8 +10,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -23,7 +26,7 @@ public class Tube implements java.io.Serializable {
 	// Fields
 
 	private Long tubeId;
-	private Long analysisId;
+	private Analysisvideo analysisvideo;
 	private Short objDetStatusFlag;
 	private Short detCmd;
 	private Short detPriority;
@@ -50,6 +53,7 @@ public class Tube implements java.io.Serializable {
 	private Integer lastErrCode;
 	private String lastErrMsg;
 	private Short retryCount;
+	private Set<Object> objects = new HashSet<Object>(0);
 	private Set<Tubesnapshotinfo> tubesnapshotinfos = new HashSet<Tubesnapshotinfo>(0);
 
 	// Constructors
@@ -59,18 +63,18 @@ public class Tube implements java.io.Serializable {
 	}
 
 	/** minimal constructor */
-	public Tube(Long analysisId, Integer tubeId_1) {
-		this.analysisId = analysisId;
+	public Tube(Analysisvideo analysisvideo, Integer tubeId_1) {
+		this.analysisvideo = analysisvideo;
 		this.tubeId_1 = tubeId_1;
 	}
 
 	/** full constructor */
-	public Tube(Long analysisId, Short objDetStatusFlag, Short detCmd, Short detPriority, Boolean isGenSnapshot, Integer tubeId_1, Long startFrmIdxOrg,
-			Long startFrmIdxRefOrg, Long startFrmPtsOrg, Long endFrmIdxOrg, Long endFrmIdxRefOrg, Long endFrmPtsOrg, Long numFrmOrg, Long tubeFileOffset,
-			Integer tubeDataLen, Integer tubeMaskDataLen, Integer tubeColorDataLen, Integer objTypeFv, String objMovDirFv, Short objMaxBbWidth,
-			Short objMaxBbHeight, Short compSnapshotNum, String compSnapshotInfo, String tbiFilename, Integer lastErrCode, String lastErrMsg, Short retryCount,
-			Set<Tubesnapshotinfo> tubesnapshotinfos) {
-		this.analysisId = analysisId;
+	public Tube(Analysisvideo analysisvideo, Short objDetStatusFlag, Short detCmd, Short detPriority, Boolean isGenSnapshot, Integer tubeId_1,
+			Long startFrmIdxOrg, Long startFrmIdxRefOrg, Long startFrmPtsOrg, Long endFrmIdxOrg, Long endFrmIdxRefOrg, Long endFrmPtsOrg, Long numFrmOrg,
+			Long tubeFileOffset, Integer tubeDataLen, Integer tubeMaskDataLen, Integer tubeColorDataLen, Integer objTypeFv, String objMovDirFv,
+			Short objMaxBbWidth, Short objMaxBbHeight, Short compSnapshotNum, String compSnapshotInfo, String tbiFilename, Integer lastErrCode,
+			String lastErrMsg, Short retryCount, Set<Object> objects, Set<Tubesnapshotinfo> tubesnapshotinfos) {
+		this.analysisvideo = analysisvideo;
 		this.objDetStatusFlag = objDetStatusFlag;
 		this.detCmd = detCmd;
 		this.detPriority = detPriority;
@@ -97,12 +101,13 @@ public class Tube implements java.io.Serializable {
 		this.lastErrCode = lastErrCode;
 		this.lastErrMsg = lastErrMsg;
 		this.retryCount = retryCount;
+		this.objects = objects;
 		this.tubesnapshotinfos = tubesnapshotinfos;
 	}
 
 	// Property accessors
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = IDENTITY)
 	@Column(name = "TubeID", unique = true, nullable = false)
 	public Long getTubeId() {
 		return this.tubeId;
@@ -112,13 +117,14 @@ public class Tube implements java.io.Serializable {
 		this.tubeId = tubeId;
 	}
 
-	@Column(name = "AnalysisID", nullable = false)
-	public Long getAnalysisId() {
-		return this.analysisId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "AnalysisID", nullable = false)
+	public Analysisvideo getAnalysisvideo() {
+		return this.analysisvideo;
 	}
 
-	public void setAnalysisId(Long analysisId) {
-		this.analysisId = analysisId;
+	public void setAnalysisvideo(Analysisvideo analysisvideo) {
+		this.analysisvideo = analysisvideo;
 	}
 
 	@Column(name = "obj_det_status_flag")
@@ -353,6 +359,15 @@ public class Tube implements java.io.Serializable {
 
 	public void setRetryCount(Short retryCount) {
 		this.retryCount = retryCount;
+	}
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "tube")
+	public Set<Object> getObjects() {
+		return this.objects;
+	}
+
+	public void setObjects(Set<Object> objects) {
+		this.objects = objects;
 	}
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "tube")

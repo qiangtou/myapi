@@ -86,36 +86,4 @@ public class SystemconfigId implements java.io.Serializable {
 		this.isAllowAssignTask = isAllowAssignTask;
 	}
 
-	public boolean equals(Object other) {
-		if ((this == other))
-			return true;
-		if ((other == null))
-			return false;
-		if (!(other instanceof SystemconfigId))
-			return false;
-		SystemconfigId castOther = (SystemconfigId) other;
-
-		return ((this.getUploadDirectory() == castOther.getUploadDirectory()) || (this.getUploadDirectory() != null && castOther.getUploadDirectory() != null && this
-				.getUploadDirectory().equals(castOther.getUploadDirectory())))
-				&& ((this.getTranscodedDirectory() == castOther.getTranscodedDirectory()) || (this.getTranscodedDirectory() != null
-						&& castOther.getTranscodedDirectory() != null && this.getTranscodedDirectory().equals(castOther.getTranscodedDirectory())))
-				&& ((this.getSummaryResolution() == castOther.getSummaryResolution()) || (this.getSummaryResolution() != null
-						&& castOther.getSummaryResolution() != null && this.getSummaryResolution().equals(castOther.getSummaryResolution())))
-				&& ((this.getIsExternalAccessAllow() == castOther.getIsExternalAccessAllow()) || (this.getIsExternalAccessAllow() != null
-						&& castOther.getIsExternalAccessAllow() != null && this.getIsExternalAccessAllow().equals(castOther.getIsExternalAccessAllow())))
-				&& ((this.getIsAllowAssignTask() == castOther.getIsAllowAssignTask()) || (this.getIsAllowAssignTask() != null
-						&& castOther.getIsAllowAssignTask() != null && this.getIsAllowAssignTask().equals(castOther.getIsAllowAssignTask())));
-	}
-
-	public int hashCode() {
-		int result = 17;
-
-		result = 37 * result + (getUploadDirectory() == null ? 0 : this.getUploadDirectory().hashCode());
-		result = 37 * result + (getTranscodedDirectory() == null ? 0 : this.getTranscodedDirectory().hashCode());
-		result = 37 * result + (getSummaryResolution() == null ? 0 : this.getSummaryResolution().hashCode());
-		result = 37 * result + (getIsExternalAccessAllow() == null ? 0 : this.getIsExternalAccessAllow().hashCode());
-		result = 37 * result + (getIsAllowAssignTask() == null ? 0 : this.getIsAllowAssignTask().hashCode());
-		return result;
-	}
-
 }

@@ -9,6 +9,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import cn.jiuling.distributedapi.dao.ExternaltaskDao;
+import cn.jiuling.distributedapi.model.Externaltask;
 import cn.jiuling.distributedapi.test.BaseTest;
 
 public class ExternaltaskDaoTest extends BaseTest {
@@ -21,5 +22,13 @@ public class ExternaltaskDaoTest extends BaseTest {
 		String taskName = "浓缩任务";
 		long count = externaltaskDao.findByTaskNameAndUserUploadVideoId(id, taskName);
 		Assert.assertEquals(3, count);
+	}
+
+	@Test
+	public void getLastTask() {
+		Externaltask e = externaltaskDao.getLastTask(1);
+		if (null != e) {
+			Assert.assertEquals(10, e.getExtTaskId().intValue());
+		}
 	}
 }

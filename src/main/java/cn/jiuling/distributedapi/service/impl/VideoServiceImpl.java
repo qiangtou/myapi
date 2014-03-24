@@ -1,10 +1,13 @@
 package cn.jiuling.distributedapi.service.impl;
 
+import java.io.File;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.annotation.Resource;
 
@@ -17,29 +20,38 @@ import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
 import cn.jiuling.distributedapi.Vo.ExternalTaskStatusVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
 import cn.jiuling.distributedapi.Vo.HistoryTaskListVo;
-import cn.jiuling.distributedapi.Vo.QueryTaskListResultVo;
+import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
+import cn.jiuling.distributedapi.Vo.RetrieveParamVo;
+import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
 import cn.jiuling.distributedapi.Vo.Status;
+import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TaskVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.Vo.TripwireVo;
 import cn.jiuling.distributedapi.Vo.VideoVo;
+import cn.jiuling.distributedapi.dao.AnalysisvideoDao;
 import cn.jiuling.distributedapi.dao.ConfigDao;
 import cn.jiuling.distributedapi.dao.DownloadtasksDao;
 import cn.jiuling.distributedapi.dao.ExternaltaskDao;
 import cn.jiuling.distributedapi.dao.ExttaskstatusDao;
+import cn.jiuling.distributedapi.dao.GeneratevideoDao;
 import cn.jiuling.distributedapi.dao.ScheduletasksDao;
 import cn.jiuling.distributedapi.dao.VideoDao;
 import cn.jiuling.distributedapi.exception.ServiceException;
+import cn.jiuling.distributedapi.model.Analysisvideo;
 import cn.jiuling.distributedapi.model.Config;
 import cn.jiuling.distributedapi.model.Downloadtasks;
 import cn.jiuling.distributedapi.model.Externaltask;
 import cn.jiuling.distributedapi.model.Exttaskstatus;
+import cn.jiuling.distributedapi.model.Generatevideo;
 import cn.jiuling.distributedapi.model.Scheduletasks;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
+import cn.jiuling.distributedapi.utils.ConfigUtils;
 import cn.jiuling.distributedapi.utils.DiskSpaceUtils;
 import cn.jiuling.distributedapi.utils.FileUtils;
+import cn.jiuling.distributedapi.utils.PathUtils;
 import cn.jiuling.distributedapi.utils.RegUtils;
 import cn.jiuling.distributedapi.utils.ResponseUtils;
 
@@ -57,6 +69,10 @@ public class VideoServiceImpl implements VideoService {
 	private ExternaltaskDao externaltaskDao;
 	@Resource
 	private ExttaskstatusDao exttaskstatusDao;
+	@Resource
+	private AnalysisvideoDao analysisvideoDao;
+	@Resource
+	private GeneratevideoDao generatevideoDao;
 
 	@Override
 	public List queryVideo(Long cameraid, Long userid) {
@@ -184,7 +200,7 @@ public class VideoServiceImpl implements VideoService {
 	}
 
 	@Override
-	public QueryTaskListResultVo queryTaskList(String userid, Integer status, Timestamp startTime, Timestamp endTime, Integer startIndex, Integer count) {
+	public ListResultVo queryTaskList(String userid, Integer status, Timestamp startTime, Timestamp endTime, Integer startIndex, Integer count) {
 		try {
 			List<HistoryTaskListVo> list = downloadtasksDao.queryHistoryTaskListList(userid, status, startTime, endTime);
 			int k = 0;
@@ -229,7 +245,7 @@ public class VideoServiceImpl implements VideoService {
 				}
 
 			}
-			QueryTaskListResultVo result = new QueryTaskListResultVo(totalCount, newList);
+			ListResultVo result = new ListResultVo(totalCount, newList);
 			result.setCount(count);
 			return result;
 		} catch (Exception e) {
@@ -250,7 +266,7 @@ public class VideoServiceImpl implements VideoService {
 				progress = getDownloadProgress(h.getFlowNumber()).intValue();
 			} else if (userUploadVideoId > 0) {
 				// $UserUploadVideoId > 0 说明值有效且有转码任务
-				TranscodeStatusVo t = queryTranscodeStatus(userUploadVideoId);
+				TranscodeStatusVo t = queryTranscodeStatus(userUploadVideoId.longValue());
 				Short transcodeStatus = t.getStatus();
 				if (transcodeStatus == 0 || transcodeStatus == 2)// 等待转码和正在转码
 				{
@@ -442,7 +458,7 @@ public class VideoServiceImpl implements VideoService {
 			}
 
 			Short downloadStatus = 0;
-			if (FileUtils.isExist(localFileName)) {
+			if (FileUtils.isExistFile(localFileName)) {
 				downloadStatus = 2;
 			} else if (userUploadVideoId != 0) {
 				Useruploadvideo v = videoDao.load(userUploadVideoId);
@@ -565,24 +581,81 @@ public class VideoServiceImpl implements VideoService {
 	 * @return Timestamp实例
 	 */
 	private Timestamp parse(String time) {
-		Timestamp record_Time = new Timestamp(
-				Integer.valueOf(time.substring(0, 4)) - 1900,
-				Integer.valueOf(time.substring(4, 6)) - 1,
-				Integer.valueOf(time.substring(6, 8)),
-				Integer.valueOf(time.substring(8, 10)),
-				Integer.valueOf(time.substring(10, 12)),
-				Integer.valueOf(time.substring(12, 14)), 0);
+		Timestamp record_Time = null;
+		try {
+			record_Time = new Timestamp(
+					Integer.valueOf(time.substring(0, 4)) - 1900,
+					Integer.valueOf(time.substring(4, 6)) - 1,
+					Integer.valueOf(time.substring(6, 8)),
+					Integer.valueOf(time.substring(8, 10)),
+					Integer.valueOf(time.substring(10, 12)),
+					Integer.valueOf(time.substring(12, 14)), 0);
+		} catch (Exception e) {
+
+		}
 		return record_Time;
 	}
 
 	@Override
-	public void addTranscodeTask(Long userid, String srcName, Short isAutoSubmit) {
-		if (!DiskSpaceUtils.IsTranscodeSpaceEnough()) {
-			throw new ServiceException(Status.DISK_SPACE_IS_NOT_ENOUGHT);
+	public Useruploadvideo addTranscodeTask(Long userid, String srcName, Short isAutoSubmit) {
+		try {
+			if (!DiskSpaceUtils.IsTranscodeSpaceEnough()) {
+				throw new ServiceException(Status.DISK_SPACE_IS_NOT_ENOUGHT);
+			}
+			String basedir = PathUtils.getWebRoot();
+			basedir = basedir + File.separator + "orgvideos" + File.separator + userid + File.separator;
+			FileUtils.createDir(basedir);
+			String vedeoName;
+			String srcURI;
+			String destURI;
+
+			if (FileUtils.isExistFile(srcName)) {
+				vedeoName = FileUtils.getFileName(srcName);
+				srcURI = srcName;
+				destURI = basedir + vedeoName;
+			} else {
+				String ftpFold = RegUtils.getFtpPath();
+				String userPath = ftpFold + File.separator + userid;
+				srcURI = userPath + File.separator + srcName;
+				destURI = basedir + srcName;
+
+				FileUtils.createDir(userPath);
+				String srcFile = ftpFold + File.separator + srcName;
+				if (!FileUtils.isExistFile(srcFile)) {
+					if (!FileUtils.isExistFile(srcURI)) {
+						throw new ServiceException(Status.SRCFILE_IS_NOT_EXIST);
+					}
+				} else {
+					File newFile = FileUtils.copy(srcFile, srcURI);
+					srcURI = newFile.getAbsolutePath();
+				}
+			}
+
+			// 判断文件名是否合法
+			if (srcURI.indexOf("'") > -1) {
+				throw new ServiceException(Status.SRCFILE_ISNOT_VALID);
+			}
+			destURI = FileUtils.getNoRepeatFilename(destURI).getAbsolutePath();
+			Useruploadvideo u = videoDao.getBySrcAndDest(srcURI, destURI);
+			if (u != null) {
+				throw new ServiceException(Status.TASK_REPEAT);
+			}
+
+			Timestamp timeFromFile = parse(srcURI);
+			Timestamp t = null != timeFromFile ? timeFromFile : new Timestamp(0);
+			/*INSERT INTO UserUploadVideo(CameraID,timestamp,record_time,userid,srcURL,destURL,status,last_err_code,
+				    last_err_msg,progress,retry_count,last_try_video_vendor_type, isAutoSubmit)
+				    VALUES(0,now(),'$record_time',$UserId,'$srcURI','$destURI',0,0,'',0,0,-1,$isAutoSubmit)";
+			*/
+			Short zero = Short.valueOf("0");
+			Useruploadvideo useruploadvideo = new Useruploadvideo
+					(0L, new Timestamp(System.currentTimeMillis()), t, userid, srcURI, destURI, zero, 0, "", zero, 0, -1, isAutoSubmit,
+							zero, "--", 0, 0, 25, null, null);
+			videoDao.save(useruploadvideo);
+			return useruploadvideo;
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
 		}
-		String ftpPath = RegUtils.getFtpPath();
-		String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgpics";
-		FileUtils.createDir(dataPath);
 
 	}
 
@@ -621,55 +694,335 @@ public class VideoServiceImpl implements VideoService {
 	}
 
 	@Override
-	public TranscodeStatusVo queryTranscodeStatus(Integer userUploadVideoId) {
-		Config c = configDao.getConfig();
-		String dataPath = c.getDataPath();
-		Useruploadvideo v = videoDao.load(userUploadVideoId);
-		Externaltask externaltask = externaltaskDao.findBy("userUploadVideoId", userUploadVideoId);
-		// 查到数据就是1
-		Integer submit = null != externaltask ? 1 : 0;
-		TranscodeStatusVo t = new TranscodeStatusVo();
-		/*$resultArray['status'] = $row['status'];
-		$resultArray['srcURI'] = $row['srcURL'];
-		$resultArray['destURI'] = $row['destURL'];
-		$resultArray['downloadURI'] = $row['downloadURI'];
-		$resultArray['progress'] = $row['progress'];
-		$resultArray['submit'] = $submit;
-		
-		*/
-		Short status = v.getStatus();
-		Short progress = v.getProgress();
-		t.setStatus(status);
-		t.setSrcURI(v.getSrcUrl());
-		t.setDestURI(v.getDestUrl());
-		/*dataPath:D:/VideoInvestigation/VIServer/DAT
-		 *destUrl:'D:/VideoInvestigation/VIServer/DAT/123456789/ooo.avi'
-		 */
-		t.setDownloadURI(v.getDestUrl().substring(v.getDestUrl().length() - dataPath.length() - 11));
-		t.setProgress(progress);
-		t.setSubmit(submit.shortValue());
-		/*if(($row['status'] == 1) && ($row['progress'] == 100))
-		{
-		  $command = "select resolution, duration, space, frame_rate FROM useruploadvideo where useruploadvideoid = $UserUploadVideoId";
-		  $result = mysql_query($command);
-		  $row = mysql_fetch_array($result);
-		  $resultArray['resolution'] = $row['resolution'];
-		  $resultArray['duration'] = $row['duration'];
-		  $resultArray['space'] = $row['space'];
-		  $resultArray['frame_rate'] = $row['frame_rate'];
-		}*/
-		if (status == 1 && progress == 100) {
-			t.setResolution(v.getResolution());
-			t.setDuration(v.getDuration());
-			t.setSpace(v.getSpace());
-			t.setFrame_rate(v.getFrameRate());
+	public TranscodeStatusVo queryTranscodeStatus(Long userUploadVideoId) {
+		try {
+			Config c = configDao.getConfig();
+			String dataPath = c.getDataPath();
+			Useruploadvideo v = videoDao.load(userUploadVideoId);
+			Externaltask externaltask = externaltaskDao.findBy("userUploadVideoId", userUploadVideoId.intValue());
+			// 查到数据就是1
+			Integer submit = null != externaltask ? 1 : 0;
+			TranscodeStatusVo t = new TranscodeStatusVo();
+			/*$resultArray['status'] = $row['status'];
+			$resultArray['srcURI'] = $row['srcURL'];
+			$resultArray['destURI'] = $row['destURL'];
+			$resultArray['downloadURI'] = $row['downloadURI'];
+			$resultArray['progress'] = $row['progress'];
+			$resultArray['submit'] = $submit;
+			
+			*/
+			Short status = v.getStatus();
+			Short progress = v.getProgress();
+			t.setStatus(status);
+			t.setSrcURI(v.getSrcUrl());
+			t.setDestURI(v.getDestUrl());
+			/*dataPath:D:/VideoInvestigation/VIServer/DAT
+			 *destUrl:'D:/VideoInvestigation/VIServer/DAT/123456789/ooo.avi'
+			 */
+			t.setDownloadURI(v.getDestUrl().substring(v.getDestUrl().length() - dataPath.length() - 11));
+			t.setProgress(progress);
+			t.setSubmit(submit.shortValue());
+			/*if(($row['status'] == 1) && ($row['progress'] == 100))
+			{
+			  $command = "select resolution, duration, space, frame_rate FROM useruploadvideo where useruploadvideoid = $UserUploadVideoId";
+			  $result = mysql_query($command);
+			  $row = mysql_fetch_array($result);
+			  $resultArray['resolution'] = $row['resolution'];
+			  $resultArray['duration'] = $row['duration'];
+			  $resultArray['space'] = $row['space'];
+			  $resultArray['frame_rate'] = $row['frame_rate'];
+			}*/
+			if (status == 1 && progress == 100) {
+				t.setResolution(v.getResolution());
+				t.setDuration(v.getDuration());
+				t.setSpace(v.getSpace());
+				t.setFrame_rate(v.getFrameRate());
+			}
+			return t;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
-		return t;
 	}
 
 	@Override
-	public void queryTaskDetail(String flowNumber) {
+	public TaskDetailVo queryTaskDetail(String flowNumber) {
+		try {
+			Externaltask e = externaltaskDao.get(Long.valueOf(flowNumber));
+			if (null == e) {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			TaskDetailVo taskDetailVo = new TaskDetailVo();
+			BeanUtils.copyProperties(e, taskDetailVo);
+			Analysisvideo analysisvideo = analysisvideoDao.getHeightAndwidth(flowNumber);
+			if (analysisvideo != null) {
+				taskDetailVo.setSummaryHeight(analysisvideo.getOutputHeight());
+				taskDetailVo.setSummaryWidth(analysisvideo.getOutputWidth());
+			}
+			return taskDetailVo;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public ListResultVo getuploadtasklist(String userid, Integer status, Long startTime, Long endTime, Integer index, Integer count) {
+		try {
+
+			ListResultVo result = videoDao.queryUploadFileList(userid, status, startTime, endTime, index, count);
+
+			// TODO 这里的totalcount,if(status==5)的情况还要去查一库。。。。。
+			int totalcount = 0;
+
+			return result;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public String getsnapshotzipurl(String flownumber, String snapshotType, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo,
+			Short objType2) {
+		if (!"tube".equals(snapshotType) && !"obj".equals(snapshotType)) {
+			throw new ServiceException(Status.INVALID_VALUE, "snapshotType");
+		}
+
+		Config c = configDao.getConfig();
+		String dataPath = c.getDataPath();
+		dataPath = dataPath + File.separator + "AstVS_1v2" + File.separator;
+		// 取taskId
+		Externaltask externaltask = externaltaskDao.findBy("flowNumber", flownumber);
+		if (externaltask == null || externaltask.getUserUploadVideoId() == null) {
+			throw new ServiceException(Status.OBJECT_IS_NOT_EXIST, "Externaltask.flownumber=" + flownumber);
+		}
+		Integer taskId = externaltask.getTaskId();
+		Short recordTimeType;
+
+		Integer userUploadVideoId = externaltask.getUserUploadVideoId();
+		SnapGenInfoVo sv = videoDao.querySnapGenInfo(userUploadVideoId, taskId);
+		if (0 == userUploadVideoId) {
+			recordTimeType = 2;
+		} else {
+			recordTimeType = 1;
+		}
+		if ("obj".equals(snapshotType)) {
+			Externaltask e = externaltaskDao.findBy("taskId", taskId.longValue());
+			RetrieveParamVo rp = getRetrieveParam(e);
+			if (null == objType) {
+				objType = rp.getObjType();
+			}
+			String nullValue = "null,null,null,null,null,null,null,null,null";
+			if (StringUtils.isEmpty(rgbInfo)) {
+				rgbInfo = rp.getRgbInfo();
+			}
+			if (null == sortType) {
+				if (!nullValue.equals(rp.getRgbInfo())) {
+					sortType = 4;
+				} else {
+					sortType = 1;
+				}
+			}
+		}
+		Short enableCarnum = 0;
+		if ("tube".equals(snapshotType)) {
+			queryTubeSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo);
+		} else {
+			queryObjSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo, objType2);
+		}
+
+		// TODO QuerySnapshotFolder
+		return null;
+	}
+
+	private void queryObjSnapshot(Integer taskId, int i, int j, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo, Short objType2) {
 		// TODO Auto-generated method stub
+
+	}
+
+	private void queryTubeSnapshot(Integer taskId, int index, int count, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo) {
+		// TODO Auto-generated method stub
+		Generatevideo g = generatevideoDao.load(taskId.longValue());
+		Short isAllSnapshots = 1;
+		if (1 != g.getGenerateStatusFlag()) {
+			isAllSnapshots = 0;
+		}
+		// ===== Query snapshot info =====
+		if (objType == 0) {
+
+		}
+
+	}
+
+	private RetrieveParamVo getRetrieveParam(Externaltask e) {
+		RetrieveParamVo rp = new RetrieveParamVo();
+		rp.setObjType(e.getObjType());
+		String avgRgbInfo = getRgbInfo(e.getRetrieveAvgcolor());
+		String upperRgbInfo = getRgbInfo(e.getRetrieveUppercolor());
+		String lowerRgbInfo = getRgbInfo(e.getRetrieveLowercolor());
+		rp.setRgbInfo(avgRgbInfo + "," + upperRgbInfo + "," + lowerRgbInfo);
+		return rp;
+	}
+
+	private String getRgbInfo(Integer retrieveColor) {
+		String rgbInfo;
+		if (retrieveColor == 0) {
+			rgbInfo = "null,null,null";
+		} else {
+			rgbInfo = ((retrieveColor & 0xff0000) >> 16) + "," + ((retrieveColor & 0xff00) >> 8) + "," + (retrieveColor & 0xff);
+		}
+		return rgbInfo;
+	}
+
+	@Override
+	public String getOrgvideoFragmenturl(String filename, Integer ss, Integer endpos) {
+		try {
+			String url = "";
+			if (!FileUtils.isExistFile(filename)) {
+				return url;
+			}
+			deleteOrgVideoFragment();
+			// 创视频片段文件夹
+			String base_dir = File.separator + "videoclip";
+			String webRootPath = PathUtils.getWebRoot();
+			String clipdir = webRootPath + base_dir;
+			FileUtils.createDir(clipdir);
+
+			String clipfile = FileUtils.getFileName(filename);
+			String ext = ".avi";
+			clipfile = clipfile + "_" + ss + "_" + endpos + ext;
+			String clipname = clipdir + File.separator + clipfile;
+
+			if (FileUtils.isExistFile(clipname)) {
+				url = "/videoclip/" + clipfile;
+				return url;
+			};
+
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+			sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+			String start = sdf.format(new Date(ss * 1000l));
+			String end = sdf.format(new Date(endpos * 1000l));
+			/*
+			 * $cmd = '..\..\TranscoderService\ffmpeg  -ss ' . $startTime . ' -t ' . $endTime . ' -i  "' . $filename .' "   -vcodec  libx264 "' . $clipname . '"';
+			 * php是放在web根目录的，也就是说从web根目录往上找两级
+			 */
+			File webRoot = new File(webRootPath);
+			String cmd = webRoot.getParentFile().getParent() + "\\TranscoderService\\ffmpeg  -ss " + start + " -t " + end + " -i  \""
+					+ filename + " \"   -vcodec  libx264 \"" + clipname + "\"";
+			Runtime.getRuntime().exec("cmd.exe /C " + cmd);
+			if (FileUtils.isExistFile(filename)) {
+				url = "/videoclip/" + clipfile;
+			}
+			return url;
+
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	private void deleteOrgVideoFragment() {
+		// TODO Auto-generated method stub
+		String file = "videoclip";
+		Double size = FileUtils.getDirSize(file);
+		Integer orgvideofragmentSize = Integer.valueOf(ConfigUtils.getValue("orgvideofragment"));
+		if (size.intValue() > orgvideofragmentSize.intValue()) {
+			// 删一半文件？
+			File f = new File(file);
+			File fs[] = f.listFiles();
+			for (int i = 0, j = fs.length / 2; i < j; i++) {
+				fs[i].delete();
+			}
+		}
+	}
+
+	@Override
+	public TaskDetailVo queryLastCfgInfo(Integer videoid) {
+		try {
+			Useruploadvideo v = videoDao.get(videoid.longValue());
+			Externaltask e = externaltaskDao.getLastTask(videoid);
+			if (null == v || null == e) {
+				throw new ServiceException(Status.NO_RESULT);
+			}
+			return queryTaskDetail(e.getFlowNumber());
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void addAutoAnalyse4Case(Integer caseid, Integer userid) {
+		try {
+			Externaltask e;
+			List list = videoDao.getVideosByCase(caseid, userid);
+			if (list.size() > 0) {
+				for (int i = 0, j = list.size(); i < j; i++) {
+					e = (Externaltask) list.get(i);
+					short taskType = e.getTaskType();
+
+					String taskName;
+					/*  WHEN 0 THEN SET _taskName = '检索任务';
+					  WHEN 1 THEN SET _taskName = '浓缩检索任务';
+					  WHEN 2 THEN SET _taskName = '浓缩任务';*/
+					if (taskType == 0) {
+						taskName = "检索任务";
+					} else if (taskType == 1) {
+						taskName = "浓缩检索任务";
+					} else if (taskType == 2) {
+						taskName = "浓缩检索任务";
+					} else {
+						throw new ServiceException(Status.TASK_TYPE_ERRER);
+					}
+
+					long taskCount = externaltaskDao.findByTaskNameAndUserUploadVideoId(e.getUserUploadVideoId(), taskName);
+					taskName = taskName + "(" + (taskCount + 1) + ")";
+					e.setTaskName(taskName);
+					e.setUserid("" + userid);
+					externaltaskDao.save(e);
+					e.setFlowNumber("" + e.getExtTaskId());
+					externaltaskDao.update(e);
+				}
+			}
+
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
+	}
+
+	@Override
+	public void addAutoAnalyse4Camera(Integer cameraid, Integer userid) {
+		try {
+			Externaltask e;
+			List list = videoDao.getVideosByCamera(cameraid, userid);
+			if (list.size() > 0) {
+				for (int i = 0, j = list.size(); i < j; i++) {
+					e = (Externaltask) list.get(i);
+					short taskType = e.getTaskType();
+
+					String taskName;
+					/*  WHEN 0 THEN SET _taskName = '检索任务';
+					  WHEN 1 THEN SET _taskName = '浓缩检索任务';
+					  WHEN 2 THEN SET _taskName = '浓缩任务';*/
+					if (taskType == 0) {
+						taskName = "检索任务";
+					} else if (taskType == 1) {
+						taskName = "浓缩检索任务";
+					} else if (taskType == 2) {
+						taskName = "浓缩检索任务";
+					} else {
+						throw new ServiceException(Status.TASK_TYPE_ERRER);
+					}
+
+					long taskCount = externaltaskDao.findByTaskNameAndUserUploadVideoId(e.getUserUploadVideoId(), taskName);
+					taskName = taskName + "(" + (taskCount + 1) + ")";
+					e.setTaskName(taskName);
+					e.setUserid("" + userid);
+					externaltaskDao.save(e);
+					e.setFlowNumber("" + e.getExtTaskId());
+					externaltaskDao.update(e);
+				}
+			}
+
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
 
 	}
 }

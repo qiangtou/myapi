@@ -13,11 +13,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.jiuling.distributedapi.Vo.ExternaltaskVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
-import cn.jiuling.distributedapi.Vo.QueryTaskListResultVo;
+import cn.jiuling.distributedapi.Vo.ListResultVo;
+import cn.jiuling.distributedapi.Vo.OrgvideofragmenturlRes;
 import cn.jiuling.distributedapi.Vo.ResStatus;
+import cn.jiuling.distributedapi.Vo.SnapshotzipurlRes;
 import cn.jiuling.distributedapi.Vo.Status;
+import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TaskListRes;
+import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
+import cn.jiuling.distributedapi.Vo.UseruploadvideoVo;
 import cn.jiuling.distributedapi.model.Externaltask;
+import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
 import cn.jiuling.distributedapi.utils.ResponseUtils;
 
@@ -229,7 +235,7 @@ public class VideoAnalyzeController extends BaseController {
 			@RequestParam(required = false, defaultValue = "0") Integer index,
 			@RequestParam(required = false, defaultValue = "-1") Integer count,
 			@RequestParam(required = false, defaultValue = "0") Integer status) {
-		QueryTaskListResultVo result = videoService.queryTaskList(userid, status, startTime, endTime, index, count);
+		ListResultVo result = videoService.queryTaskList(userid, status, startTime, endTime, index, count);
 
 		TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS, result);
 
@@ -238,7 +244,7 @@ public class VideoAnalyzeController extends BaseController {
 	}
 
 	/**
-	 * 6.3视频处理任务详细信息查询
+	 * 6.4视频处理任务详细信息查询
 	 * 
 	 * @param flowNumber
 	 * @return
@@ -247,15 +253,13 @@ public class VideoAnalyzeController extends BaseController {
 	@ResponseBody
 	public String taskDetail(@RequestParam String flowNumber) {
 
-		// TODO 视频处理任务详细信息查询,表mst_analysistask找不到
-		// TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS);
-		videoService.queryTaskDetail(flowNumber);
-		return ResponseUtils.parse(null, null, false);
+		TaskDetailVo t = videoService.queryTaskDetail(flowNumber);
+		return ResponseUtils.parse(null, t, false);
 
 	}
 
 	/**
-	 * 添加视频转码
+	 * 6.5添加视频转码
 	 * 
 	 * @param userid
 	 * @param srcName
@@ -267,15 +271,16 @@ public class VideoAnalyzeController extends BaseController {
 	public String addTranscodeTask(@RequestParam Long userid, @RequestParam String srcName,
 			@RequestParam(required = false, defaultValue = "0") Short isAutoSubmit) {
 		srcName = srcName.trim();
-		videoService.addTranscodeTask(userid, srcName, isAutoSubmit);
-		return ResponseUtils.parse(null);
+		Useruploadvideo u = videoService.addTranscodeTask(userid, srcName, isAutoSubmit);
+		UseruploadvideoVo v = new UseruploadvideoVo();
+		v.setDestUrl(u.getDestUrl());
+		v.setUserUploadVideoId(u.getUserUploadVideoId());
+		return ResponseUtils.parse(new ResStatus(Status.ADD_SUCCESS), v, false);
 
 	}
 
 	/**
-	 * 查询已上传视频列表
-	 * 
-	 * TODO php中userid是必填的,但是api文档中没有这个参数
+	 * 6.6查询已上传视频列表
 	 * 
 	 * @param startTime
 	 * @param endTime
@@ -287,22 +292,22 @@ public class VideoAnalyzeController extends BaseController {
 	@RequestMapping("getuploadtasklist.php")
 	@ResponseBody
 	public String getuploadtasklist(
+			@RequestParam String userid,
 			@RequestParam(required = false, defaultValue = "0") Long startTime,
 			Long endTime,
 			@RequestParam(required = false, defaultValue = "0") Integer index,
 			@RequestParam(required = false, defaultValue = "-1") Integer count,
 			@RequestParam(required = false, defaultValue = "-1") Integer status) {
 
-		// TODO 添加视频转码,表mst_analysistask找不到
-		// TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS);
-		return ResponseUtils.parse(null);
+		ListResultVo result = videoService.getuploadtasklist(userid, status, startTime, endTime, index, count);
+		TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS, result);
+
+		return ResponseUtils.parse(rs, result.getList());
 
 	}
 
 	/**
-	 * 查询转码视频状态
-	 * 
-	 * TODO 没有表mst_masterconfig
+	 * 6.7查询转码视频状态
 	 * 
 	 * @param UserUploadVideoId
 	 * @return
@@ -310,17 +315,12 @@ public class VideoAnalyzeController extends BaseController {
 	@RequestMapping("querytranscodestatus.php")
 	@ResponseBody
 	public String querytranscodestatus(@RequestParam Long UserUploadVideoId) {
-		// SELECT t.status,t.srcURL,t.destURL,t.progress,CONCAT(c.VirtualDAT,
-		// right(t.destURL,char_length(t.destURL)-char_length(c.PhysicalDATPath)))
-		// as downloadURI FROM mst_videotranscode t ,mst_masterconfig c WHERE
-		// t.VideoId = " . $VideoId;
-		// TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS);
-		return ResponseUtils.parse(null);
-
+		TranscodeStatusVo tv = videoService.queryTranscodeStatus(UserUploadVideoId);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), tv, false);
 	}
 
 	/**
-	 * 获取单快照打包文件名
+	 * TODO 6.8获取单快照打包文件名
 	 * 
 	 * @param flownumber
 	 * @param SnapshotType
@@ -334,17 +334,81 @@ public class VideoAnalyzeController extends BaseController {
 	 */
 	@RequestMapping("getsnapshotzipurl.php")
 	@ResponseBody
-	public String getsnapshotzipurl(@RequestParam Long flownumber, Short SnapshotType,
-			Short sortType,
-			Short sortOrder,
-			Short objType,
-			Short objSize,
-			Short rgbInfo,
-			Short obj_type) {
+	public String getsnapshotzipurl(@RequestParam String flownumber,
+			@RequestParam(required = false, defaultValue = "tube") String SnapshotType,
+				Short sortType,
+				Short sortOrder,
+				Short objType,
+			@RequestParam(required = false, defaultValue = "0") Short objSize,
+			@RequestParam(required = false, defaultValue = "null,null,null,null,null,null,null,null,null") String rgbInfo,
+			@RequestParam(required = false, defaultValue = "0") Short obj_type) {
 
-		// TODO添加视频转码,表mst_analysistask找不到
-		// TaskListRes rs = new TaskListRes(Status.QUERY_SUCCESS);
-		return ResponseUtils.parse(null);
+		String url = videoService.getsnapshotzipurl(flownumber, SnapshotType, sortType, sortOrder, objType, objSize, rgbInfo, obj_type);
+		return ResponseUtils.parse(new SnapshotzipurlRes(Status.QUERY_SUCCESS, url));
+	}
 
+	/**
+	 * 6.10获取原始视频片段文件名
+	 * 
+	 * @param filename
+	 * @param ss
+	 * @param endpos
+	 * @return
+	 */
+	@RequestMapping("getorgvideofragmenturl.php")
+	@ResponseBody
+	public String getorgvideofragmenturl(
+			@RequestParam String filename,
+			@RequestParam Integer ss,
+			@RequestParam Integer endpos) {
+		String url = videoService.getOrgvideoFragmenturl(filename, ss, endpos);
+		OrgvideofragmenturlRes rs = new OrgvideofragmenturlRes(Status.QUERY_SUCCESS);
+		rs.setUrl(url);
+		return ResponseUtils.parse(rs);
+	}
+
+	/**
+	 * 6.11获取视频最近一次任务分析配置
+	 * 
+	 * @param videoid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryLastCfgInfo" })
+	@ResponseBody
+	public String queryLastCfgInfo(
+			@RequestParam Integer videoid) {
+		TaskDetailVo tv = videoService.queryLastCfgInfo(videoid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), tv, false);
+	}
+
+	/**
+	 * 6.12添加案件下所有视频自动分析
+	 * 
+	 * @param videoid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=AddAutoAnalyse4Case" })
+	@ResponseBody
+	public String addAutoAnalyse4Case(
+			@RequestParam Integer caseid,
+			@RequestParam Integer userid) {
+		videoService.addAutoAnalyse4Case(caseid, userid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS));
+	}
+
+	/**
+	 * 6.13添加监控点下所有视频自动分析
+	 * 
+	 * @param cameraid
+	 * @param userid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=AddAutoAnalyse4Camera" })
+	@ResponseBody
+	public String addAutoAnalyse4Camera(
+			@RequestParam Integer cameraid,
+			@RequestParam Integer userid) {
+		videoService.addAutoAnalyse4Camera(cameraid, userid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS));
 	}
 }

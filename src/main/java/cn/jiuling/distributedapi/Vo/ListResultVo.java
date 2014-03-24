@@ -2,13 +2,18 @@ package cn.jiuling.distributedapi.Vo;
 
 import java.util.List;
 
-public class QueryTaskListResultVo {
+public class ListResultVo {
 
 	private int totalCount;
 	private int count;
 	private List list;
 
-	public QueryTaskListResultVo(int totalCount, List list) {
+	public ListResultVo() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public ListResultVo(int totalCount, List list) {
 		super();
 		this.totalCount = totalCount;
 		this.list = list;

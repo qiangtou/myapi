@@ -56,4 +56,13 @@ public class ExternaltaskDaoImpl extends BaseDaoImpl<Externaltask> implements Ex
 		return list;
 	}
 
+	@Override
+	public Externaltask getLastTask(Integer videoid) {
+		List list = find("from Externaltask e where e.userUploadVideoId=" + videoid + " order by e.extTaskId desc", 0, 1);
+		if (list.size() > 0) {
+			return (Externaltask) list.get(0);
+		}
+		return null;
+	}
+
 }

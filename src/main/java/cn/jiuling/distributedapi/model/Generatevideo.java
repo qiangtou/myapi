@@ -1,10 +1,18 @@
 package cn.jiuling.distributedapi.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -17,7 +25,7 @@ public class Generatevideo implements java.io.Serializable {
 	// Fields
 
 	private Long generateId;
-	private Long analysisId;
+	private Analysisvideo analysisvideo;
 	private Short generateStatusFlag;
 	private Short genCmd;
 	private Short disorderProgress;
@@ -48,6 +56,16 @@ public class Generatevideo implements java.io.Serializable {
 	private Boolean objSearchByMov;
 	private String objRequestMovVertics;
 	private Integer objRequestMovVerticsNum;
+	private Short objSearchByRegion;
+	private String objRequestRegion;
+	private Short objSearchByImage;
+	private String objRequestImageUrl;
+	private String objRequestImageData;
+	private String objRequestMaskUrl;
+	private String objRequestMaskData;
+	private Short objSearchScope;
+	private Boolean objSearchByAbnormal;
+	private Short objAbnormalType;
 	private Short tripAreaIsValid;
 	private String tripAreaSetting;
 	private Boolean objSearchByLicense;
@@ -64,12 +82,12 @@ public class Generatevideo implements java.io.Serializable {
 	private Short sumFrmHeight;
 	private Integer sumFrmNum;
 	private Float sumFrmRate;
+	private Short snapType;
 	private Integer lastErrCode;
 	private String lastErrMsg;
 	private Integer retryCount;
-	private Short snapType;
-	private Short objSearchByRegion;
-	private String objRequestRegion;
+	private Set<Tubesuminfo> tubesuminfos = new HashSet<Tubesuminfo>(0);
+	private Set<Objectsearchresult> objectsearchresults = new HashSet<Objectsearchresult>(0);
 
 	// Constructors
 
@@ -78,22 +96,25 @@ public class Generatevideo implements java.io.Serializable {
 	}
 
 	/** minimal constructor */
-	public Generatevideo(Long analysisId) {
-		this.analysisId = analysisId;
+	public Generatevideo(Analysisvideo analysisvideo, Short snapType) {
+		this.analysisvideo = analysisvideo;
+		this.snapType = snapType;
 	}
 
 	/** full constructor */
-	public Generatevideo(Long analysisId, Short generateStatusFlag, Short genCmd, Short disorderProgress, Short taskPriority, Short frmPeriodType,
+	public Generatevideo(Analysisvideo analysisvideo, Short generateStatusFlag, Short genCmd, Short disorderProgress, Short taskPriority, Short frmPeriodType,
 			Long startFrm, Long startFrmIdxRef, Long startFrmPts, Long endFrm, Long endFrmIdxRef, Long endFrmPts, Short objRequestType,
 			Boolean objSearchByAvgColor, Short objRequestColorB, Short objRequestColorG, Short objRequestColorR, Boolean objSearchByUpperColor,
 			Short objRequestUpperB, Short objRequestUpperG, Short objRequestUpperR, Boolean objSearchByLowerColor, Short objRequestLowerB,
 			Short objRequestLowerG, Short objRequestLowerR, Float rbgToleranceInPct, Boolean objSearchByHeight, Float objRequestObjHeight,
-			Boolean objSearchByMov, String objRequestMovVertics, Integer objRequestMovVerticsNum, Short tripAreaIsValid, String tripAreaSetting,
+			Boolean objSearchByMov, String objRequestMovVertics, Integer objRequestMovVerticsNum, Short objSearchByRegion, String objRequestRegion,
+			Short objSearchByImage, String objRequestImageUrl, String objRequestImageData, String objRequestMaskUrl, String objRequestMaskData,
+			Short objSearchScope, Boolean objSearchByAbnormal, Short objAbnormalType, Short tripAreaIsValid, String tripAreaSetting,
 			Boolean objSearchByLicense, String objRequestLicense, Short compressDensity, Short sumVSm, Boolean isRetrieveObj, Boolean isGenSumVideo,
 			String sumFilename, String sumDestAbsPath, String sumMetadataFilename, Integer sumTubeNum, Short sumFrmWidth, Short sumFrmHeight,
-			Integer sumFrmNum, Float sumFrmRate, Integer lastErrCode, String lastErrMsg, Integer retryCount, Short snapType, Short objSearchByRegion,
-			String objRequestRegion) {
-		this.analysisId = analysisId;
+			Integer sumFrmNum, Float sumFrmRate, Short snapType, Integer lastErrCode, String lastErrMsg, Integer retryCount, Set<Tubesuminfo> tubesuminfos,
+			Set<Objectsearchresult> objectsearchresults) {
+		this.analysisvideo = analysisvideo;
 		this.generateStatusFlag = generateStatusFlag;
 		this.genCmd = genCmd;
 		this.disorderProgress = disorderProgress;
@@ -124,6 +145,16 @@ public class Generatevideo implements java.io.Serializable {
 		this.objSearchByMov = objSearchByMov;
 		this.objRequestMovVertics = objRequestMovVertics;
 		this.objRequestMovVerticsNum = objRequestMovVerticsNum;
+		this.objSearchByRegion = objSearchByRegion;
+		this.objRequestRegion = objRequestRegion;
+		this.objSearchByImage = objSearchByImage;
+		this.objRequestImageUrl = objRequestImageUrl;
+		this.objRequestImageData = objRequestImageData;
+		this.objRequestMaskUrl = objRequestMaskUrl;
+		this.objRequestMaskData = objRequestMaskData;
+		this.objSearchScope = objSearchScope;
+		this.objSearchByAbnormal = objSearchByAbnormal;
+		this.objAbnormalType = objAbnormalType;
 		this.tripAreaIsValid = tripAreaIsValid;
 		this.tripAreaSetting = tripAreaSetting;
 		this.objSearchByLicense = objSearchByLicense;
@@ -140,12 +171,12 @@ public class Generatevideo implements java.io.Serializable {
 		this.sumFrmHeight = sumFrmHeight;
 		this.sumFrmNum = sumFrmNum;
 		this.sumFrmRate = sumFrmRate;
+		this.snapType = snapType;
 		this.lastErrCode = lastErrCode;
 		this.lastErrMsg = lastErrMsg;
 		this.retryCount = retryCount;
-		this.snapType = snapType;
-		this.objSearchByRegion = objSearchByRegion;
-		this.objRequestRegion = objRequestRegion;
+		this.tubesuminfos = tubesuminfos;
+		this.objectsearchresults = objectsearchresults;
 	}
 
 	// Property accessors
@@ -160,13 +191,14 @@ public class Generatevideo implements java.io.Serializable {
 		this.generateId = generateId;
 	}
 
-	@Column(name = "AnalysisID", nullable = false)
-	public Long getAnalysisId() {
-		return this.analysisId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "AnalysisID", nullable = false)
+	public Analysisvideo getAnalysisvideo() {
+		return this.analysisvideo;
 	}
 
-	public void setAnalysisId(Long analysisId) {
-		this.analysisId = analysisId;
+	public void setAnalysisvideo(Analysisvideo analysisvideo) {
+		this.analysisvideo = analysisvideo;
 	}
 
 	@Column(name = "generate_status_flag")
@@ -439,6 +471,96 @@ public class Generatevideo implements java.io.Serializable {
 		this.objRequestMovVerticsNum = objRequestMovVerticsNum;
 	}
 
+	@Column(name = "obj_search_by_region")
+	public Short getObjSearchByRegion() {
+		return this.objSearchByRegion;
+	}
+
+	public void setObjSearchByRegion(Short objSearchByRegion) {
+		this.objSearchByRegion = objSearchByRegion;
+	}
+
+	@Column(name = "obj_request_region")
+	public String getObjRequestRegion() {
+		return this.objRequestRegion;
+	}
+
+	public void setObjRequestRegion(String objRequestRegion) {
+		this.objRequestRegion = objRequestRegion;
+	}
+
+	@Column(name = "obj_search_by_image")
+	public Short getObjSearchByImage() {
+		return this.objSearchByImage;
+	}
+
+	public void setObjSearchByImage(Short objSearchByImage) {
+		this.objSearchByImage = objSearchByImage;
+	}
+
+	@Column(name = "obj_request_image_url")
+	public String getObjRequestImageUrl() {
+		return this.objRequestImageUrl;
+	}
+
+	public void setObjRequestImageUrl(String objRequestImageUrl) {
+		this.objRequestImageUrl = objRequestImageUrl;
+	}
+
+	@Column(name = "obj_request_image_data")
+	public String getObjRequestImageData() {
+		return this.objRequestImageData;
+	}
+
+	public void setObjRequestImageData(String objRequestImageData) {
+		this.objRequestImageData = objRequestImageData;
+	}
+
+	@Column(name = "obj_request_mask_url")
+	public String getObjRequestMaskUrl() {
+		return this.objRequestMaskUrl;
+	}
+
+	public void setObjRequestMaskUrl(String objRequestMaskUrl) {
+		this.objRequestMaskUrl = objRequestMaskUrl;
+	}
+
+	@Column(name = "obj_request_mask_data")
+	public String getObjRequestMaskData() {
+		return this.objRequestMaskData;
+	}
+
+	public void setObjRequestMaskData(String objRequestMaskData) {
+		this.objRequestMaskData = objRequestMaskData;
+	}
+
+	@Column(name = "obj_search_scope")
+	public Short getObjSearchScope() {
+		return this.objSearchScope;
+	}
+
+	public void setObjSearchScope(Short objSearchScope) {
+		this.objSearchScope = objSearchScope;
+	}
+
+	@Column(name = "obj_search_by_abnormal")
+	public Boolean getObjSearchByAbnormal() {
+		return this.objSearchByAbnormal;
+	}
+
+	public void setObjSearchByAbnormal(Boolean objSearchByAbnormal) {
+		this.objSearchByAbnormal = objSearchByAbnormal;
+	}
+
+	@Column(name = "obj_abnormal_type")
+	public Short getObjAbnormalType() {
+		return this.objAbnormalType;
+	}
+
+	public void setObjAbnormalType(Short objAbnormalType) {
+		this.objAbnormalType = objAbnormalType;
+	}
+
 	@Column(name = "tripArea_is_valid")
 	public Short getTripAreaIsValid() {
 		return this.tripAreaIsValid;
@@ -583,6 +705,15 @@ public class Generatevideo implements java.io.Serializable {
 		this.sumFrmRate = sumFrmRate;
 	}
 
+	@Column(name = "snap_type", nullable = false)
+	public Short getSnapType() {
+		return this.snapType;
+	}
+
+	public void setSnapType(Short snapType) {
+		this.snapType = snapType;
+	}
+
 	@Column(name = "last_err_code")
 	public Integer getLastErrCode() {
 		return this.lastErrCode;
@@ -610,31 +741,22 @@ public class Generatevideo implements java.io.Serializable {
 		this.retryCount = retryCount;
 	}
 
-	@Column(name = "snap_type")
-	public Short getSnapType() {
-		return this.snapType;
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "generatevideo")
+	public Set<Tubesuminfo> getTubesuminfos() {
+		return this.tubesuminfos;
 	}
 
-	public void setSnapType(Short snapType) {
-		this.snapType = snapType;
+	public void setTubesuminfos(Set<Tubesuminfo> tubesuminfos) {
+		this.tubesuminfos = tubesuminfos;
 	}
 
-	@Column(name = "obj_search_by_region")
-	public Short getObjSearchByRegion() {
-		return this.objSearchByRegion;
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "generatevideo")
+	public Set<Objectsearchresult> getObjectsearchresults() {
+		return this.objectsearchresults;
 	}
 
-	public void setObjSearchByRegion(Short objSearchByRegion) {
-		this.objSearchByRegion = objSearchByRegion;
-	}
-
-	@Column(name = "obj_request_region")
-	public String getObjRequestRegion() {
-		return this.objRequestRegion;
-	}
-
-	public void setObjRequestRegion(String objRequestRegion) {
-		this.objRequestRegion = objRequestRegion;
+	public void setObjectsearchresults(Set<Objectsearchresult> objectsearchresults) {
+		this.objectsearchresults = objectsearchresults;
 	}
 
 }

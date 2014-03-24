@@ -21,4 +21,7 @@ public interface ExternaltaskDao extends BaseDao<Externaltask> {
 	public Long findByTaskNameAndUserUploadVideoId(Serializable id, String taskName);
 
 	public List<QueryTaskVo> queryTask(Integer uploadvideoid, String dataPath);
+
+	public Externaltask getLastTask(Integer videoid);
+
 }

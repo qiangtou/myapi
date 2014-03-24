@@ -2,6 +2,10 @@ package cn.jiuling.distributedapi.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.springframework.util.FileCopyUtils;
 
@@ -169,13 +173,13 @@ public class FileUtils {
 	 * @param path
 	 * @return
 	 */
-	public static boolean isExist(String path) {
+	public static boolean isExistFile(String path) {
 		File f = new File(path);
-		return f.exists();
+		return f.exists() && f.isFile();
 	}
 
 	/**
-	 * 取得扩展名
+	 * 取得扩展名(带点的)
 	 * 
 	 * @param name
 	 * @return
@@ -186,6 +190,12 @@ public class FileUtils {
 	}
 
 	public static File copy(String in, String out) throws IOException {
+		File outFile = getNoRepeatFilename(out);
+		FileCopyUtils.copy(new File(in), outFile);
+		return outFile;
+	}
+
+	public static File getNoRepeatFilename(String out) {
 		File outFile = new File(out);
 		String ext = getExt(out);
 		String preFix = out.substring(0, out.length() - ext.length());
@@ -200,21 +210,57 @@ public class FileUtils {
 				flag = false;
 			}
 		}
-		FileCopyUtils.copy(new File(in), outFile);
 		return outFile;
 	}
 
-	public static void main(String[] args) {
-		String name = "jflaasdfasdf.lgj";
-		String n = FileUtils.getExt(name);
-		System.out.println(n);
-		try {
-			File f = FileUtils.copy("d://1.txt", "d://pp/2.txt");
-			System.out.println(f.getName());
-			System.out.println(f.getAbsolutePath());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	/**
+	 * 从路径中取文件名
+	 * 
+	 * @param srcName
+	 * @return
+	 */
+	public static String getFileName(String srcName) {
+		int index = srcName.lastIndexOf(File.separator);
+		String name = srcName.substring(index + 1);
+		return name;
+	}
+
+	public static void main(String[] args) throws IOException {
+		String n = FileUtils.getFileName("asdfkasdfadsfjla.dsf");
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+		long millis = 5 * 1000l;
+		Date date = new Date(millis);
+		Calendar c = Calendar.getInstance(TimeZone.getDefault());
+
+		c.setTimeInMillis(millis);
+
+		String start = sdf.format(c.getTime());
+		System.out.println(start);
+		Runtime.getRuntime().exec("cmd /C notepad hh.hh");
+	}
+
+	public static double getDirSize(String string) {
+		return getDirSize(new File(string));
+	}
+
+	private static double getDirSize(File file) {
+		// 判断文件是否存在
+		if (file.exists()) {
+			// 如果是目录则递归计算其内容的总大小
+			if (file.isDirectory()) {
+				File[] children = file.listFiles();
+				double size = 0;
+				for (File f : children)
+					size += getDirSize(f);
+				return size;
+			} else {// 如果是文件则直接返回其大小,以“兆”为单位
+				double size = (double) file.length() / 1024 / 1024;
+				return size;
+			}
+		} else {
+			System.out.println("文件或者文件夹不存在，请检查路径是否正确！");
+			return 0.0;
 		}
 	}
 }

@@ -113,19 +113,43 @@ public class Externaltask implements java.io.Serializable {
 	public Externaltask() {
 	}
 
-	/** minimal constructor */
-	public Externaltask(Short taskType, String sourceUrl, Float framerate, Short isContain, Short objEnable, Short objType, Short objSubtype,
-			Short colorTolerance, Short enableAvgcolor, Integer retrieveAvgcolor, Short enableUppercolor, Integer retrieveUppercolor, Short enableLowercolor,
-			Integer retrieveLowercolor, Short enableCarnum, Short carnumStatus, Short objHeight, Short objWidth, Short objDepth, Integer timePeirodIndicator,
-			Integer timePeirodStart, Integer timePeirodEnd, Integer startFrame, Integer endFrame, Short snapType, Timestamp timestamp) {
+	public Externaltask(
+			Long userUploadVideoId,
+			String localFilename,
+			Integer framerate,
+			Short taskType,
+			Short runTimeSpeed,
+			Short thickness,
+			Integer sensitivity,
+			Short objEnable,
+			Short objType,
+			Short enableAvgcolor,
+			Integer retrieveAvgcolor,
+			Short enableUppercolor,
+			Integer retrieveUppercolor,
+			Short enableLowercolor,
+			Integer retrieveLowercolor,
+			Short enableCarnum,
+			String retrieveCarnum,
+			Integer taskPriority,
+			Short enableSearchByImage,
+			String requestImageUrl,
+			String requestImageData,
+			String requestMaskUrl,
+			String requestMaskData
+
+	) {
+		super();
+		this.userUploadVideoId = userUploadVideoId.intValue();
+		this.localFilename = localFilename;
+		this.framerate = framerate != null ? framerate.floatValue() : null;
 		this.taskType = taskType;
-		this.sourceUrl = sourceUrl;
-		this.framerate = framerate;
-		this.isContain = isContain;
+		this.runTimeSpeed = (int) runTimeSpeed;
+		this.thickness = thickness;
+		this.sensitivity = sensitivity;
+		this.taskPriority = taskPriority;
 		this.objEnable = objEnable;
 		this.objType = objType;
-		this.objSubtype = objSubtype;
-		this.colorTolerance = colorTolerance;
 		this.enableAvgcolor = enableAvgcolor;
 		this.retrieveAvgcolor = retrieveAvgcolor;
 		this.enableUppercolor = enableUppercolor;
@@ -133,17 +157,59 @@ public class Externaltask implements java.io.Serializable {
 		this.enableLowercolor = enableLowercolor;
 		this.retrieveLowercolor = retrieveLowercolor;
 		this.enableCarnum = enableCarnum;
-		this.carnumStatus = carnumStatus;
-		this.objHeight = objHeight;
-		this.objWidth = objWidth;
-		this.objDepth = objDepth;
-		this.timePeirodIndicator = timePeirodIndicator;
-		this.timePeirodStart = timePeirodStart;
-		this.timePeirodEnd = timePeirodEnd;
-		this.startFrame = startFrame;
-		this.endFrame = endFrame;
-		this.snapType = snapType;
-		this.timestamp = timestamp;
+		this.retrieveCarnum = retrieveCarnum;
+		this.enableSearchByImage = enableSearchByImage;
+		this.requestImageUrl = requestImageUrl;
+		this.requestImageData = requestImageData;
+		this.requestMaskUrl = requestMaskUrl;
+		this.requestMaskData = requestMaskData;
+
+		// 下面是初始化默认值
+		this.setLinkFlowNumber("0");
+		this.setFilename("1.avi");
+		this.setFileSize(24560000);
+		this.setSourceUrl("file://" + this.localFilename);
+		this.setIsRegSet(Short.valueOf("0"));
+		this.setIsContain(Short.valueOf("1"));
+		this.setClockwisePoint1X(Short.valueOf("-1"));
+		this.setClockwisePoint1Y(Short.valueOf("-1"));
+		this.setClockwisePoint2X(Short.valueOf("-1"));
+		this.setClockwisePoint2Y(Short.valueOf("-1"));
+		this.setClockwisePoint3X(Short.valueOf("-1"));
+		this.setClockwisePoint3Y(Short.valueOf("-1"));
+		this.setClockwisePoint4X(Short.valueOf("-1"));
+		this.setClockwisePoint4Y(Short.valueOf("-1"));
+
+		this.setObjSubtype(Short.valueOf("0"));
+		this.setColorTolerance(Short.valueOf("0"));
+		this.setObjHeight(Short.valueOf("0"));
+		this.setObjWidth(Short.valueOf("0"));
+		this.setObjDepth(Short.valueOf("0"));
+		this.setStartFrame(0);
+		this.setEndFrame(5400000);
+		this.setDownloadStatus(Short.valueOf("2"));
+		this.setObjSearchByMov(false);
+		this.setObjRequestMovVertics(" ");
+		this.setObjRequestMovVerticsNum(0);
+		this.setSummaryHeight(Short.valueOf("-1"));
+		this.setSummaryWidth(Short.valueOf("-1"));
+		this.setIsSetTripArea(Short.valueOf("0"));
+		this.setTripArea("0");
+		this.setUdrExist(Short.valueOf("0"));
+		this.setUdrSetting("");
+
+		this.setConfigStatus(Short.valueOf("0"));
+		this.setCarnumStatus(Short.valueOf("0"));
+		this.setSnapType(Short.valueOf("0"));
+		this.setTimePeirodEnd(0);
+		this.setTimePeirodIndicator(0);
+		this.setTimePeirodStart(0);
+		this.setDropFrmRate(0f);
+		this.setSearchScope(Short.valueOf("0"));
+
+		this.setTestflag("-");
+		this.setTimestamp(new Timestamp(System.currentTimeMillis()));
+
 	}
 
 	/** full constructor */
