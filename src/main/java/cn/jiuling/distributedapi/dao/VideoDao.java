@@ -5,6 +5,7 @@ import java.util.List;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
 import cn.jiuling.distributedapi.Vo.StatusInfoVo;
+import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 
 public interface VideoDao extends BaseDao<Useruploadvideo> {
@@ -27,5 +28,7 @@ public interface VideoDao extends BaseDao<Useruploadvideo> {
 	public List getVideosByCase(Integer caseid, Integer userid);
 
 	public List getVideosByCamera(Integer cameraid, Integer userid);
+
+	public List<UnAssignVideoVo> queryUnAssignVideo(Long caseid);
 
 }

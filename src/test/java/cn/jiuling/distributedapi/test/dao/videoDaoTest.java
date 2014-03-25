@@ -15,4 +15,9 @@ public class videoDaoTest extends BaseTest {
 	public void getVideos() {
 		videoDao.getVideosByCamera(1, 1);
 	}
+
+	@Test
+	public void queryUnAssignVideo() {
+		videoDao.queryUnAssignVideo(1l);
+	}
 }

@@ -33,6 +33,26 @@ public class Autoanalyseparam4camera implements java.io.Serializable {
 
 	/** default constructor */
 	public Autoanalyseparam4camera() {
+		/*
+		`cameraid` BIGINT(20) UNSIGNED NOT NULL,
+		`userid` BIGINT(20) UNSIGNED NOT NULL,
+		`UDR_exist` TINYINT(4) NULL DEFAULT '0',
+		`UDR_setting` BLOB NULL,
+		`summary_width` SMALLINT(6) NULL DEFAULT '-1',
+		`summary_height` SMALLINT(6) NULL DEFAULT '-1',
+		`isSetTripArea` TINYINT(4) NULL DEFAULT '0',
+		`trip_area` BLOB NULL,
+		`obj_search_by_mov` TINYINT(1) NULL DEFAULT '0',
+		`obj_request_mov_vertics` TINYBLOB NULL,
+		`obj_request_mov_vertics_num` INT(11) NULL DEFAULT '0',*/
+
+		this.udrExist = 0;
+		this.summaryWidth = -1;
+		this.summaryHeight = -1;
+		this.isSetTripArea = 0;
+		this.objSearchByMov = false;
+		this.objRequestMovVerticsNum = 0;
+
 	}
 
 	/** minimal constructor */

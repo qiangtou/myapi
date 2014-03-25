@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
 import cn.jiuling.distributedapi.Vo.StatusInfoVo;
+import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.dao.VideoDao;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 
@@ -255,7 +256,7 @@ public class VideoDaoImpl extends BaseDaoImpl<Useruploadvideo> implements VideoD
 				      AND a.caseid = c.id AND a.userid = userid 
 				      and u.is_deleted <> 1 and u.status = 1 and b.cameraid = m.id and b.userid = userid;
 		*/
-		String queryString = "	SELECT "
+		String queryString = "	SELECT new Externaltask("
 				+ "u.userUploadVideoId,"
 				+ "u.destUrl,"
 				+ "u.frameRate,"
@@ -288,13 +289,37 @@ public class VideoDaoImpl extends BaseDaoImpl<Useruploadvideo> implements VideoD
 				+ "a.requestImageData,"
 				+ "a.requestMaskUrl,"
 				+ "a.requestMaskData"
-				+ " from Useruploadvideo u,Case c,Camera m,Autoanalyseparam a"
+				+ ") from Useruploadvideo u,Case c,Camera m,Autoanalyseparam a"
 				+ ", Autoanalyseparam4camera b "
 				+ " WHERE m.id = ? AND m.caseId = c.id AND u.cameraId = m.id "
 				+ "AND a.caseid = c.id AND a.userid = ? and u.isDeleted <> 1 "
 				+ "and u.status = 1 and b.cameraid = m.id and b.userid = ?";
 
 		List list = getHibernateTemplate().find(queryString, new Object[] { cameraid.longValue(), userid.longValue(), userid.longValue() });
+		return list;
+	}
+
+	@Override
+	public List<UnAssignVideoVo> queryUnAssignVideo(Long caseid) {
+		/*(casetitle, cameratitle,uploadvideoid,videoifilename) SELECT 
+		_case.title,camera.title,uv.UserUploadVideoId,uv.destURL   
+		from useruploadvideo uv,tbl_Case _case ,tbl_Camera camera WHERE 
+		_case.ID = ' , @CaseID,' AND
+		camera.CaseID = ' , @CaseID,' AND
+		uv.status<>3 AND 
+		uv.status<>4 AND 
+		uv.is_deleted <> 1 AND 
+		uv.CameraID = camera.ID AND
+		uv.UserUploadVideoId NOT IN (SELECT UserUploadVideoId FROM tbl_AssignTask)	
+		order by timestamp DESC;');
+		*/
+
+		String queryString = "select new cn.jiuling.distributedapi.Vo.UnAssignVideoVo(" +
+				"c.title,m.title,u.userUploadVideoId,u.destUrl)" +
+				" from Camera m, Case c , Useruploadvideo u " +
+				"where c.id=? and m.caseId=? " + "and u.status!=3 and u.status!=4 and u.isDeleted!=1 and u.cameraId=m.id "
+				+ "and u.userUploadVideoId not in (select k.userUploadVideoId from Assigntask k)";
+		List list = super.getHibernateTemplate().find(queryString, new Long[] { caseid, caseid });
 		return list;
 	}
 }

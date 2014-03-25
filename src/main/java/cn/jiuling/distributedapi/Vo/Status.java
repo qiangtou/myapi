@@ -30,7 +30,10 @@ public enum Status {
 	TASK_REPEAT(-3, "a repeat task not finish!"),
 	INVALID_VALUE(1, "invalid value!!"),
 	NO_RESULT(1001, "no result"),
-	TASK_TYPE_ERRER(1021, "TASK_TYPE_ERRER")
+	TASK_TYPE_ERRER(1021, "TASK_TYPE_ERRER"),
+	EXECUTE_SUCCESS(0, "execute success"),
+	EXECUTE_ERROR(0, "Execute fail"),
+	NO_TASK(0, "no task assigning")
 
 	;
 

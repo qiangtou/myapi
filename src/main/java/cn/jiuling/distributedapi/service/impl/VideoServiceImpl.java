@@ -15,6 +15,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
+import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasks4ListVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
 import cn.jiuling.distributedapi.Vo.ExternalTaskStatusVo;
@@ -29,8 +31,12 @@ import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TaskVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.Vo.TripwireVo;
+import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.Vo.VideoVo;
 import cn.jiuling.distributedapi.dao.AnalysisvideoDao;
+import cn.jiuling.distributedapi.dao.AssigntaskDao;
+import cn.jiuling.distributedapi.dao.Autoanalyseparam4cameraDao;
+import cn.jiuling.distributedapi.dao.AutoanalyseparamDao;
 import cn.jiuling.distributedapi.dao.ConfigDao;
 import cn.jiuling.distributedapi.dao.DownloadtasksDao;
 import cn.jiuling.distributedapi.dao.ExternaltaskDao;
@@ -40,6 +46,9 @@ import cn.jiuling.distributedapi.dao.ScheduletasksDao;
 import cn.jiuling.distributedapi.dao.VideoDao;
 import cn.jiuling.distributedapi.exception.ServiceException;
 import cn.jiuling.distributedapi.model.Analysisvideo;
+import cn.jiuling.distributedapi.model.Assigntask;
+import cn.jiuling.distributedapi.model.Autoanalyseparam;
+import cn.jiuling.distributedapi.model.Autoanalyseparam4camera;
 import cn.jiuling.distributedapi.model.Config;
 import cn.jiuling.distributedapi.model.Downloadtasks;
 import cn.jiuling.distributedapi.model.Externaltask;
@@ -73,6 +82,12 @@ public class VideoServiceImpl implements VideoService {
 	private AnalysisvideoDao analysisvideoDao;
 	@Resource
 	private GeneratevideoDao generatevideoDao;
+	@Resource
+	private AutoanalyseparamDao autoanalyseparamDao;
+	@Resource
+	private Autoanalyseparam4cameraDao autoanalyseparam4cameraDao;
+	@Resource
+	private AssigntaskDao assigntaskDao;
 
 	@Override
 	public List queryVideo(Long cameraid, Long userid) {
@@ -919,7 +934,6 @@ public class VideoServiceImpl implements VideoService {
 	}
 
 	private void deleteOrgVideoFragment() {
-		// TODO Auto-generated method stub
 		String file = "videoclip";
 		Double size = FileUtils.getDirSize(file);
 		Integer orgvideofragmentSize = Integer.valueOf(ConfigUtils.getValue("orgvideofragment"));
@@ -975,6 +989,7 @@ public class VideoServiceImpl implements VideoService {
 					taskName = taskName + "(" + (taskCount + 1) + ")";
 					e.setTaskName(taskName);
 					e.setUserid("" + userid);
+					e.setSourceUrl("file://" + e.getLocalFilename());
 					externaltaskDao.save(e);
 					e.setFlowNumber("" + e.getExtTaskId());
 					externaltaskDao.update(e);
@@ -1014,14 +1029,225 @@ public class VideoServiceImpl implements VideoService {
 					taskName = taskName + "(" + (taskCount + 1) + ")";
 					e.setTaskName(taskName);
 					e.setUserid("" + userid);
+					e.setSourceUrl("file://" + e.getLocalFilename());
 					externaltaskDao.save(e);
 					e.setFlowNumber("" + e.getExtTaskId());
 					externaltaskDao.update(e);
 				}
 			}
-
 		} catch (Exception e) {
 			throw new ServiceException(Status.ADD_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public AutoAnalyseParamVo queryAutoAnalyseParam(Long caseid, Long userid) {
+		try {
+			Config c = configDao.getConfig();
+			String dataPath = c.getDataPath();
+			Autoanalyseparam a = autoanalyseparamDao.findByCaseIdAndUserId(caseid, userid);
+			AutoAnalyseParamVo av = new AutoAnalyseParamVo();
+			BeanUtils.copyProperties(a, av);
+			int beginIndex = dataPath.length() + 11;
+			String requestImageUrl = a.getRequestImageUrl();
+			String ridUrl = requestImageUrl.length() >= beginIndex ? requestImageUrl.substring(beginIndex) : "";
+			av.setRequestImageDownloadUrl(ridUrl);
+			String requestMaskUrl = a.getRequestMaskUrl();
+			String rmdURL = requestMaskUrl.length() > beginIndex ? requestMaskUrl.substring(beginIndex) : "";
+			av.setRequestMaskDownloadUrl(rmdURL);
+			return av;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public Autoanalyseparam4cameraVo queryAutoAnalyseParam4Camera(Long cameraid, Long userid) {
+		try {
+			Config c = configDao.getConfig();
+			String dataPath = c.getDataPath();
+			Autoanalyseparam4camera a = autoanalyseparam4cameraDao.findByCameraIdAndUserId(cameraid, userid);
+			Autoanalyseparam4cameraVo av = new Autoanalyseparam4cameraVo();
+			BeanUtils.copyProperties(a, av);
+			return av;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void modifyAutoAnalyseParam(Long caseid, Long userid, Short taskType, Short thickness, Integer sensitivity, Short objEnable, Short objType,
+			Short enableAvgcolor,
+			Integer retrieveAvgcolor, Short enableUppercolor, Integer retrieveUppercolor, Short enableLowercolor, Integer retrieveLowercolor,
+			Short enableCarnum, String retrieveCarnum, Integer taskPriority, Short enableSearchByImage, String requestImageUrl, String requestImageData,
+			String requestMaskUrl, String requestMaskData, Short isPostPic) {
+		try {
+			if (isPostPic == 1) {
+				// 转移图片和掩码文件
+				requestImageUrl = moveFile(requestImageUrl);
+				requestMaskUrl = moveFile(requestMaskUrl);
+			}
+			Autoanalyseparam a = autoanalyseparamDao.findByCaseIdAndUserId(caseid, userid);
+			if (a == null) {
+				a = new Autoanalyseparam();
+				a.setCaseid(caseid);
+				a.setUserid(userid);
+			}
+			a.setTaskType(taskType);
+			if (null != thickness) {
+				a.setThickness(thickness);
+			}
+			if (null != thickness) {
+				a.setThickness(thickness);
+			}
+			if (null != sensitivity) {
+				a.setSensitivity(sensitivity);
+			}
+			if (null != objEnable) {
+				a.setObjEnable(objEnable);
+			}
+			if (null != objType) {
+				a.setObjType(objType);
+			}
+			if (null != enableAvgcolor) {
+				a.setEnableAvgcolor(enableAvgcolor);
+			}
+			if (null != retrieveAvgcolor) {
+				a.setRetrieveAvgcolor(retrieveAvgcolor);
+			}
+			if (null != enableUppercolor) {
+				a.setEnableUppercolor(enableUppercolor);
+			}
+			if (null != retrieveUppercolor) {
+				a.setRetrieveUppercolor(retrieveUppercolor);
+			}
+			if (null != enableLowercolor) {
+				a.setEnableLowercolor(enableLowercolor);
+			}
+			if (null != retrieveLowercolor) {
+				a.setRetrieveLowercolor(retrieveLowercolor);
+			}
+			if (null != enableCarnum) {
+				a.setEnableCarnum(enableCarnum);
+			}
+			if (null != retrieveCarnum) {
+				a.setRetrieveCarnum(retrieveCarnum);
+			}
+			if (null != taskPriority) {
+				a.setTaskPriority(taskPriority);
+			}
+			if (null != enableSearchByImage) {
+				a.setEnableSearchByImage(enableSearchByImage);
+			}
+			if (null != requestImageUrl) {
+				a.setRequestImageUrl(requestImageUrl);
+			}
+			if (null != requestImageData) {
+				a.setRequestImageData(requestImageData);
+			}
+			if (null != requestMaskUrl) {
+				a.setRequestMaskUrl(requestMaskUrl);
+			}
+			if (null != requestMaskData) {
+				a.setRequestMaskData(requestMaskData);
+			}
+			autoanalyseparamDao.saveOrUpdate(a);
+		} catch (Exception e) {
+			throw new ServiceException(Status.MODIFY_ERROR, e);
+		}
+	}
+
+	/**
+	 * 转移文件
+	 * 
+	 * @param filePath
+	 * @return
+	 * @throws Exception
+	 */
+	private String moveFile(String filePath) throws Exception {
+		if (StringUtils.isEmpty(filePath)) {
+			return filePath;
+		}
+		String ftpPath = RegUtils.getFtpPath();
+		String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgpics";
+		FileUtils.createDir(dataPath);
+		// 转移
+		File newImg = FileUtils.copy(ftpPath + filePath, dataPath + filePath);
+		// 如果复制到的地方已经有一份了,则在原来的地方再复制一份,
+		String newName = newImg.getName();
+		if (!newName.equals(filePath)) {
+			FileUtils.copy(ftpPath + filePath, ftpPath + newName);
+			filePath = newName;
+		}
+		return filePath;
+	}
+
+	@Override
+	public void modifyAutoAnalyseParam4Camera(Long cameraid, Long userid, Short udrExist, String udrSetting, Short summaryWidth, Short summaryHeight,
+			Short isSetTripArea, String tripArea, Boolean objSearchByMov, String objRequestMovVertics, Integer objRequestMovVerticsNum) {
+		try {
+			Autoanalyseparam4camera a = autoanalyseparam4cameraDao.findByCameraIdAndUserId(cameraid, userid);
+			if (a == null) {
+				a = new Autoanalyseparam4camera();
+				a.setCameraid(cameraid);
+				a.setUserid(userid);
+			}
+			if (null != udrExist) {
+				a.setUdrExist(udrExist);
+			}
+			if (null != udrSetting) {
+				a.setUdrSetting(udrSetting);
+			}
+			if (null != summaryWidth) {
+				a.setSummaryWidth(summaryWidth);
+			}
+			if (null != summaryHeight) {
+				a.setSummaryHeight(summaryHeight);
+			}
+			if (null != isSetTripArea) {
+				a.setIsSetTripArea(isSetTripArea);
+			}
+			if (null != tripArea) {
+				a.setTripArea(tripArea);
+			}
+			if (null != objSearchByMov) {
+				a.setObjSearchByMov(objSearchByMov);
+			}
+			if (null != objRequestMovVertics) {
+				a.setObjRequestMovVertics(objRequestMovVertics);
+			}
+			if (null != objRequestMovVerticsNum) {
+				a.setObjRequestMovVerticsNum(objRequestMovVerticsNum);
+			}
+			autoanalyseparam4cameraDao.saveOrUpdate(a);
+		} catch (Exception e) {
+			throw new ServiceException(Status.MODIFY_ERROR, e);
+		}
+	}
+
+	@Override
+	public List<UnAssignVideoVo> queryUnAssignVideo(Long caseid) {
+		try {
+			return videoDao.queryUnAssignVideo(caseid);
+		} catch (Exception e) {
+			throw new ServiceException(Status.MODIFY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void assigningtask(Long userid, List<Long> videoIdList) {
+		try {
+			Assigntask a;
+			for (Long id : videoIdList) {
+				a = assigntaskDao.findByUserIdAndVideoId(userid, id);
+				if (null == a) {
+					a = new Assigntask(userid, id);
+					assigntaskDao.save(a);
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceException(Status.EXECUTE_ERROR, e);
 		}
 
 	}

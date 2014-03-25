@@ -3,12 +3,15 @@ package cn.jiuling.distributedapi.service;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
+import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
 import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
+import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.model.Externaltask;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 
@@ -71,5 +74,22 @@ public interface VideoService {
 	public void addAutoAnalyse4Case(Integer caseid, Integer userid);
 
 	public void addAutoAnalyse4Camera(Integer cameraid, Integer userid);
+
+	public AutoAnalyseParamVo queryAutoAnalyseParam(Long caseid, Long userid);
+
+	public Autoanalyseparam4cameraVo queryAutoAnalyseParam4Camera(Long cameraid, Long userid);
+
+	public void modifyAutoAnalyseParam(Long caseid, Long userid, Short taskType, Short thickness, Integer sensitivity, Short objEnable, Short objType,
+			Short enableAvgcolor,
+			Integer retrieveAvgcolor, Short enableUppercolor, Integer retrieveUppercolor, Short enableLowercolor, Integer retrieveLowercolor,
+			Short enableCarnum, String retrieveCarnum, Integer taskPriority, Short enableSearchByImage, String requestImageUrl, String requestImageData,
+			String requestMaskUrl, String requestMaskData, Short isPostPic);
+
+	public void modifyAutoAnalyseParam4Camera(Long cameraid, Long userid, Short udrExist, String udrSetting, Short summaryWidth, Short summaryHeight,
+			Short isSetTripArea, String tripArea, Boolean objSearchByMov, String objRequestMovVertics, Integer objRequestMovVerticsNum);
+
+	public List<UnAssignVideoVo> queryUnAssignVideo(Long caseid);
+
+	public void assigningtask(Long userid, List<Long> videoIdList);
 
 }

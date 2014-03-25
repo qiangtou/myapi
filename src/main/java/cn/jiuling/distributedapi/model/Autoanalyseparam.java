@@ -44,6 +44,40 @@ public class Autoanalyseparam implements java.io.Serializable {
 
 	/** default constructor */
 	public Autoanalyseparam() {
+
+		// 设置默认值
+		/*`taskType` TINYINT(4) UNSIGNED NULL DEFAULT '2',
+		`run_time_speed` TINYINT(4) UNSIGNED NULL DEFAULT '3',
+		`thickness` TINYINT(3) UNSIGNED NULL DEFAULT '0',
+		`sensitivity` INT(11) NULL DEFAULT '0',
+		`obj_enable` TINYINT(4) NULL DEFAULT '0',
+		`obj_type` TINYINT(4) NULL DEFAULT '0',
+		`enable_avgcolor` TINYINT(4) NULL DEFAULT '0',
+		`retrieve_avgcolor` INT(11) NULL DEFAULT '0',
+		`enable_uppercolor` TINYINT(4) NULL DEFAULT '0',
+		`retrieve_uppercolor` INT(11) NULL DEFAULT '0',
+		`enable_lowercolor` TINYINT(4) NULL DEFAULT '0',
+		`retrieve_lowercolor` INT(11) NULL DEFAULT '0',
+		`enable_carnum` TINYINT(4) NULL DEFAULT '0',
+		`retrieve_carnum` VARCHAR(32) NULL DEFAULT '0',
+		`task_priority` INT(11) NULL DEFAULT '0',
+		`enable_search_by_image` TINYINT(4) NULL DEFAULT '0',*/
+		this.taskType = 2;
+		this.runTimeSpeed = 3;
+		this.thickness = 0;
+		this.sensitivity = 0;
+		this.objEnable = 0;
+		this.objType = 0;
+		this.enableAvgcolor = 0;
+		this.retrieveAvgcolor = 0;
+		this.enableUppercolor = 0;
+		this.retrieveUppercolor = 0;
+		this.enableLowercolor = 0;
+		this.retrieveLowercolor = 0;
+		this.enableCarnum = 0;
+		this.retrieveCarnum = "0";
+		this.taskPriority = 0;
+		this.enableSearchByImage = 0;
 	}
 
 	/** minimal constructor */

@@ -111,64 +111,11 @@ public class Externaltask implements java.io.Serializable {
 
 	/** default constructor */
 	public Externaltask() {
-	}
-
-	public Externaltask(
-			Long userUploadVideoId,
-			String localFilename,
-			Integer framerate,
-			Short taskType,
-			Short runTimeSpeed,
-			Short thickness,
-			Integer sensitivity,
-			Short objEnable,
-			Short objType,
-			Short enableAvgcolor,
-			Integer retrieveAvgcolor,
-			Short enableUppercolor,
-			Integer retrieveUppercolor,
-			Short enableLowercolor,
-			Integer retrieveLowercolor,
-			Short enableCarnum,
-			String retrieveCarnum,
-			Integer taskPriority,
-			Short enableSearchByImage,
-			String requestImageUrl,
-			String requestImageData,
-			String requestMaskUrl,
-			String requestMaskData
-
-	) {
-		super();
-		this.userUploadVideoId = userUploadVideoId.intValue();
-		this.localFilename = localFilename;
-		this.framerate = framerate != null ? framerate.floatValue() : null;
-		this.taskType = taskType;
-		this.runTimeSpeed = (int) runTimeSpeed;
-		this.thickness = thickness;
-		this.sensitivity = sensitivity;
-		this.taskPriority = taskPriority;
-		this.objEnable = objEnable;
-		this.objType = objType;
-		this.enableAvgcolor = enableAvgcolor;
-		this.retrieveAvgcolor = retrieveAvgcolor;
-		this.enableUppercolor = enableUppercolor;
-		this.retrieveUppercolor = retrieveUppercolor;
-		this.enableLowercolor = enableLowercolor;
-		this.retrieveLowercolor = retrieveLowercolor;
-		this.enableCarnum = enableCarnum;
-		this.retrieveCarnum = retrieveCarnum;
-		this.enableSearchByImage = enableSearchByImage;
-		this.requestImageUrl = requestImageUrl;
-		this.requestImageData = requestImageData;
-		this.requestMaskUrl = requestMaskUrl;
-		this.requestMaskData = requestMaskData;
-
 		// 下面是初始化默认值
 		this.setLinkFlowNumber("0");
 		this.setFilename("1.avi");
 		this.setFileSize(24560000);
-		this.setSourceUrl("file://" + this.localFilename);
+
 		this.setIsRegSet(Short.valueOf("0"));
 		this.setIsContain(Short.valueOf("1"));
 		this.setClockwisePoint1X(Short.valueOf("-1"));
@@ -209,7 +156,129 @@ public class Externaltask implements java.io.Serializable {
 
 		this.setTestflag("-");
 		this.setTimestamp(new Timestamp(System.currentTimeMillis()));
+	}
 
+	public Externaltask(
+			Long userUploadVideoId,
+			String localFilename,
+			Integer framerate,
+			Short taskType,
+			Short runTimeSpeed,
+			Short thickness,
+			Integer sensitivity,
+			Short objEnable,
+			Short objType,
+			Short enableAvgcolor,
+			Integer retrieveAvgcolor,
+			Short enableUppercolor,
+			Integer retrieveUppercolor,
+			Short enableLowercolor,
+			Integer retrieveLowercolor,
+			Short enableCarnum,
+			String retrieveCarnum,
+			Integer taskPriority,
+			Short enableSearchByImage,
+			String requestImageUrl,
+			String requestImageData,
+			String requestMaskUrl,
+			String requestMaskData
+
+	) {
+		this();
+		this.userUploadVideoId = userUploadVideoId.intValue();
+		this.localFilename = localFilename;
+		this.framerate = framerate != null ? framerate.floatValue() : null;
+		this.taskType = taskType;
+		this.runTimeSpeed = (int) runTimeSpeed;
+		this.thickness = thickness;
+		this.sensitivity = sensitivity;
+		this.taskPriority = taskPriority;
+		this.objEnable = objEnable;
+		this.objType = objType;
+		this.enableAvgcolor = enableAvgcolor;
+		this.retrieveAvgcolor = retrieveAvgcolor;
+		this.enableUppercolor = enableUppercolor;
+		this.retrieveUppercolor = retrieveUppercolor;
+		this.enableLowercolor = enableLowercolor;
+		this.retrieveLowercolor = retrieveLowercolor;
+		this.enableCarnum = enableCarnum;
+		this.retrieveCarnum = retrieveCarnum;
+		this.enableSearchByImage = enableSearchByImage;
+		this.requestImageUrl = requestImageUrl;
+		this.requestImageData = requestImageData;
+		this.requestMaskUrl = requestMaskUrl;
+		this.requestMaskData = requestMaskData;
+	}
+
+	public Externaltask(
+			Long userUploadVideoId,
+			String localFilename,
+			Integer framerate,
+			Short taskType,
+			Short runTimeSpeed,
+			Short thickness,
+			Integer sensitivity,
+			Short objEnable,
+			Short objType,
+			Short enableAvgcolor,
+			Integer retrieveAvgcolor,
+			Short enableUppercolor,
+			Integer retrieveUppercolor,
+			Short enableLowercolor,
+			Integer retrieveLowercolor,
+			Short enableCarnum,
+			String retrieveCarnum,
+			Integer taskPriority,
+
+			Short udrExist,
+			String udrSetting,
+			Short summaryWidth,
+			Short summaryHeight,
+			Short isSetTripArea,
+			String tripArea,
+			Boolean objSearchByMov,
+			String objRequestMovVertics,
+			Integer objRequestMovVerticsNum,
+			Short enableSearchByImage,
+
+			String requestImageUrl,
+			String requestImageData,
+			String requestMaskUrl,
+			String requestMaskData) {
+		this();
+		this.userUploadVideoId = userUploadVideoId.intValue();
+		this.taskType = taskType;
+		this.taskPriority = taskPriority;
+		this.thickness = thickness;
+		this.framerate = framerate != null ? framerate.floatValue() : null;
+		this.taskType = taskType;
+		this.runTimeSpeed = (int) runTimeSpeed;
+		this.udrExist = udrExist;
+		this.udrSetting = udrSetting;
+
+		this.objEnable = objEnable;
+		this.objType = objType;
+		this.enableAvgcolor = enableAvgcolor;
+		this.retrieveAvgcolor = retrieveAvgcolor;
+		this.enableUppercolor = enableUppercolor;
+		this.retrieveUppercolor = retrieveUppercolor;
+		this.enableLowercolor = enableLowercolor;
+		this.retrieveLowercolor = retrieveLowercolor;
+		this.enableCarnum = enableCarnum;
+		this.retrieveCarnum = retrieveCarnum;
+		this.localFilename = localFilename;
+		this.objSearchByMov = objSearchByMov;
+		this.objRequestMovVertics = objRequestMovVertics;
+		this.objRequestMovVerticsNum = objRequestMovVerticsNum;
+		this.summaryWidth = summaryWidth;
+		this.summaryHeight = summaryHeight;
+		this.isSetTripArea = isSetTripArea;
+		this.tripArea = tripArea;
+		this.enableSearchByImage = enableSearchByImage;
+		this.requestImageUrl = requestImageUrl;
+		this.requestImageData = requestImageData;
+		this.requestMaskUrl = requestMaskUrl;
+		this.requestMaskData = requestMaskData;
 	}
 
 	/** full constructor */

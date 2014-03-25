@@ -1,8 +1,11 @@
 package cn.jiuling.distributedapi.web;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
@@ -11,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
+import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
 import cn.jiuling.distributedapi.Vo.ExternaltaskVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
@@ -20,8 +25,11 @@ import cn.jiuling.distributedapi.Vo.SnapshotzipurlRes;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TaskListRes;
+import cn.jiuling.distributedapi.Vo.TotalRes;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
+import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.Vo.UseruploadvideoVo;
+import cn.jiuling.distributedapi.exception.ServiceException;
 import cn.jiuling.distributedapi.model.Externaltask;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
@@ -410,5 +418,180 @@ public class VideoAnalyzeController extends BaseController {
 			@RequestParam Integer userid) {
 		videoService.addAutoAnalyse4Camera(cameraid, userid);
 		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS));
+	}
+
+	/**
+	 * 6.14获取案件自动分析参数
+	 * 
+	 * @param caseid
+	 * @param userid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryAutoAnalyseParam" })
+	@ResponseBody
+	public String queryAutoAnalyseParam(
+			@RequestParam Long caseid,
+			@RequestParam Long userid) {
+		AutoAnalyseParamVo av = videoService.queryAutoAnalyseParam(caseid, userid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), av, false);
+	}
+
+	/**
+	 * 6.15获取监控点自动分析参数
+	 * 
+	 * @param cameraid
+	 * @param userid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryAutoAnalyseParam4Camera" })
+	@ResponseBody
+	public String queryAutoAnalyseParam4Camera(
+			@RequestParam Long cameraid,
+			@RequestParam Long userid) {
+		Autoanalyseparam4cameraVo av = videoService.queryAutoAnalyseParam4Camera(cameraid, userid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), av, false);
+	}
+
+	/**
+	 * 6.16修改案件自动分析参数
+	 * 
+	 * @param caseid
+	 * @param userid
+	 * @param taskType
+	 * @param thickness
+	 * @param sensitivity
+	 * @param obj_enable
+	 * @param obj_type
+	 * @param enable_avgcolor
+	 * @param retrieve_avgcolor
+	 * @param enable_uppercolor
+	 * @param retrieve_uppercolor
+	 * @param enable_lowercolor
+	 * @param retrieve_lowercolor
+	 * @param enable_carnum
+	 * @param retrieve_carnum
+	 * @param task_priority
+	 * @param enable_search_by_image
+	 * @param request_image_url
+	 * @param request_image_data
+	 * @param request_mask_url
+	 * @param request_mask_data
+	 * @param isPostPic
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=ModifyAutoAnalyseParam" })
+	@ResponseBody
+	public String ModifyAutoAnalyseParam(
+			@RequestParam Long caseid,
+			@RequestParam Long userid,
+			@RequestParam(required = false, defaultValue = "2") Short taskType,
+				Short thickness,
+				Integer sensitivity,
+				Short obj_enable,
+				Short obj_type,
+				Short enable_avgcolor,
+				Integer retrieve_avgcolor,
+				Short enable_uppercolor,
+				Integer retrieve_uppercolor,
+				Short enable_lowercolor,
+				Integer retrieve_lowercolor,
+				Short enable_carnum,
+				String retrieve_carnum,
+				Integer task_priority,
+			@RequestParam(required = false, defaultValue = "0") Short enable_search_by_image,
+			String request_image_url,
+			String request_image_data,
+			String request_mask_url,
+			String request_mask_data,
+			@RequestParam(required = false, defaultValue = "0") Short isPostPic
+
+	) {
+		videoService.modifyAutoAnalyseParam(caseid, userid, taskType, thickness, sensitivity, obj_enable, obj_type, enable_avgcolor,
+				retrieve_avgcolor, enable_uppercolor, retrieve_uppercolor, enable_lowercolor, retrieve_lowercolor, enable_carnum, retrieve_carnum,
+				task_priority, enable_search_by_image, request_image_url, request_image_data, request_mask_url, request_mask_data, isPostPic
+				);
+		return ResponseUtils.parse(new ResStatus(Status.MODIFY_SUCCESS));
+	}
+
+	/**
+	 * 6.17修改监控点自动分析参数
+	 * 
+	 * @param cameraid
+	 * @param userid
+	 * @param UDR_exist
+	 * @param UDR_setting
+	 * @param summary_width
+	 * @param summary_height
+	 * @param isSetTripArea
+	 * @param trip_area
+	 * @param obj_search_by_mov
+	 * @param obj_request_mov_vertics
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=ModifyAutoAnalyseParam4Camera" })
+	@ResponseBody
+	public String modifyAutoAnalyseParam4Camera(
+			@RequestParam Long cameraid,
+			@RequestParam Long userid,
+			@RequestParam(required = false, value = "UDR_exist") Short udrExist,
+			@RequestParam(required = false, value = "UDR_setting") String udrSetting,
+			@RequestParam(required = false, value = "summary_width") Short summaryWidth,
+			@RequestParam(required = false, value = "summary_height") Short summaryHeight,
+			@RequestParam(required = false, value = "isSetTripArea") Short isSetTripArea,
+			@RequestParam(required = false, value = "trip_area") String tripArea,
+			@RequestParam(required = false, value = "obj_search_by_mov") Boolean objSearchByMov,
+			@RequestParam(required = false, value = "obj_request_mov_vertics") String objRequestMovVertics,
+			@RequestParam(required = false, value = "obj_request_mov_vertics_num") Integer objRequestMovVerticsNum) {
+
+		videoService.modifyAutoAnalyseParam4Camera(cameraid, userid, udrExist, udrSetting, summaryWidth,
+				summaryHeight, isSetTripArea, tripArea, objSearchByMov, objRequestMovVertics, objRequestMovVerticsNum);
+		return ResponseUtils.parse(new ResStatus(Status.MODIFY_SUCCESS));
+	}
+
+	/**
+	 * 6.18查询案件下的未分配视频列表
+	 * 
+	 * @param caseid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryUnAssignVideo" })
+	@ResponseBody
+	public String queryUnAssignVideo(
+			@RequestParam Long caseid) {
+		List<UnAssignVideoVo> uList = videoService.queryUnAssignVideo(caseid);
+		TotalRes rs = new TotalRes(Status.MODIFY_SUCCESS, uList.size());
+		return ResponseUtils.parse(rs, uList);
+	}
+
+	/**
+	 *6.19任务分配
+	 * 
+	 * 参数可变，所以需要count来标识个数，userid所属的组须为分析员，即groupid=4
+	 * 
+	 * @param userid
+	 * @param count参数个数
+	 * @return
+	 */
+	@RequestMapping("assigningtask.php")
+	@ResponseBody
+	public String assigningtask(
+			@RequestParam Long userid,
+			@RequestParam Long count,
+			HttpServletRequest req) {
+		Long videoId;
+		if (count == 0) {
+			throw new ServiceException(Status.NO_TASK);
+		}
+		List<Long> videoIdList = new ArrayList<Long>();
+		for (int i = 1; i <= count.intValue(); i++) {
+			String value = req.getParameter("" + i);
+			if (value == null) {
+				throw new ServiceException(Status.PARAMETER_ERROR);
+			}
+			videoId = Long.valueOf(value);
+			videoIdList.add(videoId);
+		}
+		videoService.assigningtask(userid, videoIdList);
+		return ResponseUtils.parse(new ResStatus(Status.EXECUTE_SUCCESS));
 	}
 }
