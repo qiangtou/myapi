@@ -14,6 +14,10 @@ import javax.persistence.Table;
 @Table(name = "tbl_assigntask")
 public class Assigntask implements java.io.Serializable {
 
+	public static final Short STATUS_HANDLED = 1;
+	public static final Short STATUS_UNHANDLE = 0;
+	public static final String HANDLED = "handled";
+	public static final String UNHANDLE = "unhandle";
 	// Fields
 
 	private Long id;

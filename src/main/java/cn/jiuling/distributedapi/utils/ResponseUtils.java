@@ -1,6 +1,7 @@
 package cn.jiuling.distributedapi.utils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -8,7 +9,6 @@ import org.springframework.util.StringUtils;
 
 import cn.jiuling.distributedapi.Vo.Node;
 import cn.jiuling.distributedapi.Vo.ResStatus;
-import cn.jiuling.distributedapi.model.User;
 
 public class ResponseUtils {
 	private static Logger log = Logger.getLogger(ResponseUtils.class);
@@ -69,13 +69,7 @@ public class ResponseUtils {
 	public static String parse(ResStatus rs, List list) {
 		StringBuilder res;
 		res = parseStatus(rs);
-		int size = list.size();
-		if (null != list && size > 0) {
-			String root = getRootElement(list.get(0));
-			for (int i = 0; i < size; i++) {
-				res.append(parse(list.get(i), root));
-			}
-		}
+		res.append(parse(list));
 		wrapper(res);
 		return handlerReturnType(res.toString());
 	}
@@ -118,6 +112,22 @@ public class ResponseUtils {
 		return parseByClass(obj, clz);
 	}
 
+	public static String parse(List list) {
+		String str = "";
+		if (list != null) {
+			int size = list.size();
+			if (size > 0) {
+				String root;
+				for (int i = 0; i < size; i++) {
+					Object obj = list.get(i);
+					root = getRootElement(obj);
+					str += parse(obj, root);
+				}
+			}
+		}
+		return str;
+	}
+
 	public static StringBuilder parse(Object obj, String root) {
 		Class<? extends Object> clz = obj.getClass();
 		return parseByClass(root, obj, clz);
@@ -133,6 +143,15 @@ public class ResponseUtils {
 		Field fs[] = clz.getDeclaredFields();
 		Node node;
 		for (Field f : fs) {
+			f.setAccessible(true);
+			try {
+				Object o = f.get(obj);
+				if (o instanceof java.util.List) {
+					sb.append(parse((List) o));
+					continue;
+				};
+			} catch (Exception e) {
+			}
 			value = getFieldValue(obj, f);
 			node = f.getAnnotation(Node.class);
 			field = null == node ? f.getName() : node.value();
@@ -167,7 +186,7 @@ public class ResponseUtils {
 	 */
 	private static String getFieldValue(Object obj, Field f) {
 		String value = "";
-		f.setAccessible(true);
+
 		try {
 			value = "" + f.get(obj);
 			value = "null".equals(value) ? "" : value;
@@ -220,8 +239,44 @@ public class ResponseUtils {
 	}
 
 	public static void main(String[] args) {
-		String s = ResponseUtils.parse(new User()).toString();
-		log.info(s);
+		List l = new ArrayList();
+		List l2 = new ArrayList();
 
+		l.add(new b());
+		l.add(new b());
+		l.add(new b());
+		a aa = new a();
+		aa.setList(l);
+		l2.add(aa);
+
+		String s = ResponseUtils.parse(null, l2).toString();
+		log.info(s);
 	}
+}
+
+@Node("Object_B")
+class b {
+	private String cc;
+}
+
+class a {
+	private String gg;
+	private List list;
+
+	public String getGg() {
+		return gg;
+	}
+
+	public void setGg(String gg) {
+		this.gg = gg;
+	}
+
+	public List getList() {
+		return list;
+	}
+
+	public void setList(List list) {
+		this.list = list;
+	}
+
 }

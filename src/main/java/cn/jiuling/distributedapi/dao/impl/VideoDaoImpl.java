@@ -10,10 +10,13 @@ import org.hibernate.criterion.Property;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
+import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
 import cn.jiuling.distributedapi.Vo.StatusInfoVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
+import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
 import cn.jiuling.distributedapi.dao.VideoDao;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 
@@ -320,6 +323,101 @@ public class VideoDaoImpl extends BaseDaoImpl<Useruploadvideo> implements VideoD
 				"where c.id=? and m.caseId=? " + "and u.status!=3 and u.status!=4 and u.isDeleted!=1 and u.cameraId=m.id "
 				+ "and u.userUploadVideoId not in (select k.userUploadVideoId from Assigntask k)";
 		List list = super.getHibernateTemplate().find(queryString, new Long[] { caseid, caseid });
+		return list;
+	}
+
+	@Override
+	public List<UnAssignVideoVo> queryunhandledtask(Long userid) {
+
+		/*		 SELECT 
+		         cas.title, cam.title,  uv.srcURL ,    asst.UserUploadVideoId 
+		FROM tbl_AssignTask asst,tbl_Camera cam,tbl_Case cas,useruploadvideo uv 
+		WHERE asst.UserID = ' , UserID , ' AND asst.Status = 0 AND uv.UserUploadVideoId = asst.UserUploadVideoId 
+		AND uv.CameraID = cam.ID AND cam.CaseID = cas.ID;');  
+		*/
+		String queryString = "select new cn.jiuling.distributedapi.Vo.UnhandledtaskVo(" +
+				"c.title,m.title,u.userUploadVideoId,u.destUrl)" +
+				" from Camera m, Case c , Useruploadvideo u ,Assigntask a " +
+				"where a.userId=? and a.status=0 and u.userUploadVideoId=a.userUploadVideoId and u.cameraId=m.id and m.caseId=c.id ";
+		List list = super.getHibernateTemplate().find(queryString, userid);
+		return list;
+	}
+
+	@Override
+	public List<AssignedtaskVo> queryassignedtasklist(Long caseid) {
+		/*	
+			SELECT 
+			 user.full_name,cas.title, cam.title, uv.srcURL, asst.UserUploadVideoId,asst.Status
+			FROM tbl_User USER,tbl_AssignTask asst,tbl_Camera cam,tbl_Case cas,useruploadvideo uv
+			WHERE user.ID = asst.UserID AND uv.UserUploadVideoId = asst.UserUploadVideoId 
+			AND uv.CameraID = cam.ID AND cam.CaseID = cas.ID;');  
+			*/
+		/*
+				String username;
+				String casetitle;
+				String cameratitle;
+				String videoifilename;
+				Long uploadvideoid;
+				Short status;*/
+
+		String queryString = "select new cn.jiuling.distributedapi.Vo.AssignedtaskVo("
+				+ "u.fullName,c.title,m.title,v.srcUrl,v.userUploadVideoId,a.status) "
+				+ "from User u,Camera m, Case c , Useruploadvideo v ,Assigntask a where u.userId=a.userId "
+				+ "and v.userUploadVideoId=a.userUploadVideoId and v.cameraId=m.id and m.caseId=c.id and c.id=?";
+		List list = super.getHibernateTemplate().find(queryString, caseid);
+		return list;
+	}
+
+	@Override
+	public List<VideoEnhanceListVo> queryVideoEnhanceList(String enhanceType) {
+		/*		SELECT d.taskid, c.title, m.title, d.sourceUrl, 
+		        IF(CHAR_LENGTH(d.resultPath)!=0,d.resultPath,d.sourceUrl), 
+		        d.stateFlag, d.progress, d.density, d.priority
+				FROM tbl_camera m, tbl_case c, useruploadvideo u, ast_tbl_enhance_task d
+				WHERE m.caseid = c.id AND u.cameraid = m.id AND d.videoid = u.useruploadvideoid AND d.enhanceType =''',@type,'''');        
+		*/
+		String queryString = "select new cn.jiuling.distributedapi.Vo.VideoEnhanceListVo("
+				+ "e.taskId,c.title,m.title,e.sourceUrl,e.resultPath,   " +
+						"e.stateFlag,e.progress,e.createTime,e.density,e.priority) "
+				+ "from Camera m, Case c , Useruploadvideo u ,EnhanceTask e where m.caseId=c.id "
+				+ "and u.cameraId=m.id and u.userUploadVideoId=e.videoid  and  e.enhanceType=?";
+		List list = super.getHibernateTemplate().find(queryString, enhanceType);
+		return list;
+	}
+
+	@Override
+	public List<PicEnhanceListVo> queryPicEnhanceList(String enhanceType) {
+		/*SELECT d.taskid, iWidth, iHeight, iWTDering, iWTDenoise, iUseGPU, createTime, priority, density, 
+		resultPath:	IF(CHAR_LENGTH(d.resultPath)!=0,d.resultPath,d.sourceUrl), 
+		resultUrl:	IF(CHAR_LENGTH(d.resultUrl)!=0,RIGHT(d.resultUrl, CHAR_LENGTH(d.resultUrl)-2),RIGHT(sourceUrl, CHAR_LENGTH(sourceUrl)- CHAR_LENGTH(data_path)-11)),
+		orgPath:	sourceUrl,
+		orgUrl:	RIGHT(sourceUrl, CHAR_LENGTH(sourceUrl)- CHAR_LENGTH(data_path)-11),d.stateFlag, d.progress
+		FROM ast_tbl_enhance_task d, config c
+		WHERE d.srcType = 1 AND d.enhanceType =''',@type,'''');        
+		
+		*/
+		/*	Long id;
+			Long status;
+			Short progress;
+			Integer iWidth;
+			Integer iHeight;
+			Short iWTDering;
+			Short iWTDenoise;
+			Short iUseGPU;
+			Timestamp createTime;
+			Float density;
+			Short priority;
+			String resultPath;
+			String resultUrl;
+			String orgUrl;
+			String orgPath;*/
+		String queryString = "select new cn.jiuling.distributedapi.Vo.PicEnhanceListVo("
+				+ "e.taskId, e.stateFlag,e.progress,e.iwidth,e.iheight,e.iwtdering,e.iwtdenoise,e.iuseGpu, e.createTime,e.density,e.priority,"
+				+ "e.sourceUrl,e.resultUrl,e.resultPath,cf.dataPath) "
+				+ "from Camera m, Case c , Useruploadvideo u ,EnhanceTask e,Config cf where m.caseId=c.id "
+				+ "and u.cameraId=m.id and u.userUploadVideoId=e.videoid  and  e.enhanceType=?";
+		List list = super.getHibernateTemplate().find(queryString, enhanceType);
+
 		return list;
 	}
 }

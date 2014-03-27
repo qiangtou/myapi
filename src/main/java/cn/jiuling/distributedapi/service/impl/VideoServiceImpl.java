@@ -15,16 +15,26 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import cn.jiuling.distributedapi.Vo.AnalyseVo;
+import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
 import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
+import cn.jiuling.distributedapi.Vo.DehazeVo;
+import cn.jiuling.distributedapi.Vo.DenoiseVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasks4ListVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
+import cn.jiuling.distributedapi.Vo.EnhanceTaskVo;
 import cn.jiuling.distributedapi.Vo.ExternalTaskStatusVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
+import cn.jiuling.distributedapi.Vo.FsrtaskListVo;
+import cn.jiuling.distributedapi.Vo.FsrtaskVo;
 import cn.jiuling.distributedapi.Vo.HistoryTaskListVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
+import cn.jiuling.distributedapi.Vo.NightEnhanceVo;
+import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
 import cn.jiuling.distributedapi.Vo.RetrieveParamVo;
+import cn.jiuling.distributedapi.Vo.ReturnData;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.Vo.TaskDetailVo;
@@ -32,6 +42,7 @@ import cn.jiuling.distributedapi.Vo.TaskVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.Vo.TripwireVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
+import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.VideoVo;
 import cn.jiuling.distributedapi.dao.AnalysisvideoDao;
 import cn.jiuling.distributedapi.dao.AssigntaskDao;
@@ -39,8 +50,10 @@ import cn.jiuling.distributedapi.dao.Autoanalyseparam4cameraDao;
 import cn.jiuling.distributedapi.dao.AutoanalyseparamDao;
 import cn.jiuling.distributedapi.dao.ConfigDao;
 import cn.jiuling.distributedapi.dao.DownloadtasksDao;
+import cn.jiuling.distributedapi.dao.EnhanceTaskDao;
 import cn.jiuling.distributedapi.dao.ExternaltaskDao;
 import cn.jiuling.distributedapi.dao.ExttaskstatusDao;
+import cn.jiuling.distributedapi.dao.FsrtaskDao;
 import cn.jiuling.distributedapi.dao.GeneratevideoDao;
 import cn.jiuling.distributedapi.dao.ScheduletasksDao;
 import cn.jiuling.distributedapi.dao.VideoDao;
@@ -51,8 +64,10 @@ import cn.jiuling.distributedapi.model.Autoanalyseparam;
 import cn.jiuling.distributedapi.model.Autoanalyseparam4camera;
 import cn.jiuling.distributedapi.model.Config;
 import cn.jiuling.distributedapi.model.Downloadtasks;
+import cn.jiuling.distributedapi.model.EnhanceTask;
 import cn.jiuling.distributedapi.model.Externaltask;
 import cn.jiuling.distributedapi.model.Exttaskstatus;
+import cn.jiuling.distributedapi.model.Fsrtask;
 import cn.jiuling.distributedapi.model.Generatevideo;
 import cn.jiuling.distributedapi.model.Scheduletasks;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
@@ -88,6 +103,10 @@ public class VideoServiceImpl implements VideoService {
 	private Autoanalyseparam4cameraDao autoanalyseparam4cameraDao;
 	@Resource
 	private AssigntaskDao assigntaskDao;
+	@Resource
+	private EnhanceTaskDao enhanceTaskDao;
+	@Resource
+	private FsrtaskDao fsrtaskDao;
 
 	@Override
 	public List queryVideo(Long cameraid, Long userid) {
@@ -798,7 +817,7 @@ public class VideoServiceImpl implements VideoService {
 	public String getsnapshotzipurl(String flownumber, String snapshotType, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo,
 			Short objType2) {
 		if (!"tube".equals(snapshotType) && !"obj".equals(snapshotType)) {
-			throw new ServiceException(Status.INVALID_VALUE, "snapshotType");
+			throw new ServiceException(Status.INVALID_VALUE);
 		}
 
 		Config c = configDao.getConfig();
@@ -807,7 +826,7 @@ public class VideoServiceImpl implements VideoService {
 		// 取taskId
 		Externaltask externaltask = externaltaskDao.findBy("flowNumber", flownumber);
 		if (externaltask == null || externaltask.getUserUploadVideoId() == null) {
-			throw new ServiceException(Status.OBJECT_IS_NOT_EXIST, "Externaltask.flownumber=" + flownumber);
+			throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
 		}
 		Integer taskId = externaltask.getTaskId();
 		Short recordTimeType;
@@ -1165,17 +1184,42 @@ public class VideoServiceImpl implements VideoService {
 	 * @return
 	 * @throws Exception
 	 */
+
+	private File movefile(String filePath) throws Exception {
+		if (StringUtils.isEmpty(filePath)) {
+			return null;
+		}
+		String ftpPath = RegUtils.getFtpPath();
+		if (!ftpPath.endsWith(File.separator)) {
+			ftpPath += File.separator;
+		}
+		String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgpics\\";
+		FileUtils.createDir(dataPath);
+		// 转移
+		File newFile = FileUtils.copy(ftpPath + filePath, dataPath + filePath);
+		// 如果复制到的地方已经有一份了,则在原来的地方再复制一份,
+		String newName = newFile.getName();
+		if (!newName.equals(filePath)) {
+			FileUtils.copy(ftpPath + filePath, ftpPath + newName);
+			filePath = newName;
+		}
+		return newFile;
+	}
+
 	private String moveFile(String filePath) throws Exception {
 		if (StringUtils.isEmpty(filePath)) {
 			return filePath;
 		}
 		String ftpPath = RegUtils.getFtpPath();
-		String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgpics";
+		if (!ftpPath.endsWith(File.separator)) {
+			ftpPath += File.separator;
+		}
+		String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgpics\\";
 		FileUtils.createDir(dataPath);
 		// 转移
-		File newImg = FileUtils.copy(ftpPath + filePath, dataPath + filePath);
+		File newFile = FileUtils.copy(ftpPath + filePath, dataPath + filePath);
 		// 如果复制到的地方已经有一份了,则在原来的地方再复制一份,
-		String newName = newImg.getName();
+		String newName = newFile.getName();
 		if (!newName.equals(filePath)) {
 			FileUtils.copy(ftpPath + filePath, ftpPath + newName);
 			filePath = newName;
@@ -1231,7 +1275,7 @@ public class VideoServiceImpl implements VideoService {
 		try {
 			return videoDao.queryUnAssignVideo(caseid);
 		} catch (Exception e) {
-			throw new ServiceException(Status.MODIFY_ERROR, e);
+			throw new ServiceException(Status.QUERY_ERROR, e);
 		}
 	}
 
@@ -1248,6 +1292,353 @@ public class VideoServiceImpl implements VideoService {
 			}
 		} catch (Exception e) {
 			throw new ServiceException(Status.EXECUTE_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public List<UnAssignVideoVo> queryunhandledtask(Long userid) {
+		try {
+			return videoDao.queryunhandledtask(userid);
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void modifyHandletask(Short command, List<Long> videoIdList) {
+		try {
+			// command,0：处理完成 1：取消分配
+			Assigntask a;
+			for (Long id : videoIdList) {
+				a = assigntaskDao.get(id);
+				if (null != a) {
+					if (command == 0) {
+						a.setStatus(Assigntask.STATUS_HANDLED);
+						a.setStatusDesc(Assigntask.HANDLED);
+						assigntaskDao.update(a);
+					} else if (command == 1) {
+						assigntaskDao.delete(a);
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceException(Status.MODIFY_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public List<AssignedtaskVo> queryassignedtasklist(Long caseid) {
+		try {
+			return videoDao.queryassignedtasklist(caseid);
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public EnhanceTask addPicEnhance(Short type, String picFilename, Integer iWidth, Integer iHeight, Short iWTDering, Short iWTDenoise, Short iUseGPU,
+			Timestamp createTime, Short priority, Float density) {
+		try {
+			/* CASE _type
+			     when 2 then SET @type =  'deblur';
+			     when 3 then SET @type =  'dehaze';
+			     when 4 then SET @type =  'nightEnhance';
+			     ELSE SELECT 1021 INTO iErrorCode;
+			     	LEAVE exit_label;
+			     END CASE;*/
+			String enhanceType = "";
+			if (type == 2) {
+				enhanceType = "deblur";
+			} else if (type == 3) {
+				enhanceType = "dehaze";
+			} else if (type == 4) {
+				enhanceType = "nightEnhance";
+			} else {
+				throw new ServiceException(Status.TYPE_ERROR);
+			}
+			// 转移图片
+			picFilename = moveFile(picFilename);
+			// 持久化
+			EnhanceTask e = new EnhanceTask();
+			e.setEnhanceType(enhanceType);
+			e.setSourceUrl(picFilename);
+			e.setIwidth(iWidth);
+			e.setIheight(iHeight);
+			e.setIwtdenoise(iWTDering);
+			e.setIwtdenoise(iWTDenoise);
+			e.setIuseGpu(iUseGPU);
+			e.setCreateTime(createTime);
+			e.setPriority(priority);
+			e.setDensity(density);
+			// 默认值
+			e.setStateFlag(0L);
+			e.setProgress(Short.valueOf("0"));
+			e.setSrcType(Short.valueOf("1"));
+			enhanceTaskDao.save(e);
+			return e;
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
+	}
+
+	@Override
+	public EnhanceTask addVideoEnhance(Short type, Long videoid, String sourceUrl, Integer iWidth, Integer iHeight, Short iWTDering, Short iWTDenoise,
+			Short iUseGPU, Timestamp createTime, Short priority, Float density) {
+		try {
+			/*when 1 then SET @type =  'denoise';
+			  when 3 then SET @type =  'dehaze';
+			  when 4 then SET @type =  'nightEnhance';*/
+			String enhanceType = "";
+			if (type == 1) {
+				enhanceType = "denoise";
+			} else if (type == 3) {
+				enhanceType = "dehaze";
+			} else if (type == 4) {
+				enhanceType = "nightEnhance";
+			} else {
+				throw new ServiceException(Status.TYPE_ERROR);
+			}
+			// 持久化
+			EnhanceTask e = new EnhanceTask();
+			e.setEnhanceType(enhanceType);
+			e.setVideoid(videoid);
+			e.setSourceUrl(sourceUrl);
+			e.setIwidth(iWidth);
+			e.setIheight(iHeight);
+			e.setIwtdenoise(iWTDering);
+			e.setIwtdenoise(iWTDenoise);
+			e.setIuseGpu(iUseGPU);
+			e.setCreateTime(createTime);
+			e.setPriority(priority);
+			e.setDensity(density);
+			// 默认值
+			e.setStateFlag(0L);
+			e.setProgress(Short.valueOf("0"));
+			e.setSrcType(Short.valueOf("2"));
+			enhanceTaskDao.save(e);
+			return e;
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public EnhanceTaskVo queryEnhance(Long id) {
+		try {
+			EnhanceTaskVo v = null;
+			EnhanceTask e = enhanceTaskDao.get(id);
+			if (e != null) {
+				Long videoid = e.getVideoid();
+				if (videoid != null) {
+					Useruploadvideo uv = videoDao.get(videoid);
+					if (e.getSrcType() == 2 && uv != null && uv.getStatus() == 0) {
+						e.setStateFlag(0L);
+						e.setProgress(Short.valueOf("0"));
+					}
+				}
+				v = new EnhanceTaskVo();
+				BeanUtils.copyProperties(e, v);
+			} else {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			return v;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public List<VideoEnhanceListVo> queryVideoEnhanceList(Short type) {
+		try {
+			String enhanceType = "";
+			if (type == 1) {
+				enhanceType = "denoise";
+			} else if (type == 3) {
+				enhanceType = "dehaze";
+			} else if (type == 4) {
+				enhanceType = "nightEnhance";
+			} else {
+				throw new ServiceException(Status.TYPE_ERROR);
+			}
+			return videoDao.queryVideoEnhanceList(enhanceType);
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public List<PicEnhanceListVo> queryPicEnhanceList(Short type) {
+		try {
+			String enhanceType = "";
+			if (type == 2) {
+				enhanceType = "deblur";
+			} else if (type == 3) {
+				enhanceType = "dehaze";
+			} else if (type == 4) {
+				enhanceType = "nightEnhance";
+			} else {
+				throw new ServiceException(Status.TYPE_ERROR);
+			}
+			return videoDao.queryPicEnhanceList(enhanceType);
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void deleteEnhanceTask(Long id) {
+		try {
+			EnhanceTask e = enhanceTaskDao.get(id);
+			if (e == null) {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			enhanceTaskDao.delete(e);
+		} catch (Exception e) {
+			throw new ServiceException(Status.DEL_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public List querychildlist(Long videoid, Integer analyseStartindex, Integer analyseCount, Integer denoiseStartindex, Integer denoiseCount,
+			Integer dehazeStartindex, Integer dehazeCount, Integer nightEnhanceStartindex, Integer nightEnhanceCount) {
+		try {
+			List list = new ArrayList();
+			ReturnData rd = externaltaskDao.findAnalyse(videoid, analyseStartindex, analyseCount);
+			list.add(new AnalyseVo(rd));
+			boolean isQueryDenoise = isNotEmpty(denoiseStartindex, denoiseCount);
+			boolean isQueryDehaze = isNotEmpty(dehazeStartindex, dehazeCount);
+			boolean isQueryNightEnhance = isNotEmpty(nightEnhanceStartindex, nightEnhanceCount);
+
+			if (isQueryDenoise) {
+				rd = enhanceTaskDao.findByEnhanceType("denoise", denoiseStartindex, denoiseCount);
+				list.add(new DenoiseVo(rd));
+			}
+			if (isQueryDehaze) {
+				rd = enhanceTaskDao.findByEnhanceType("dehaze", dehazeStartindex, dehazeCount);
+				list.add(new DehazeVo(rd));
+			}
+			if (isQueryNightEnhance) {
+				rd = enhanceTaskDao.findByEnhanceType("nightEnhance", nightEnhanceStartindex, nightEnhanceCount);
+				list.add(new NightEnhanceVo(rd));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+
+	}
+
+	private boolean isNotEmpty(Integer startindex, Integer count) {
+		return (startindex != null && count != null);
+	}
+
+	@Override
+	public Fsrtask addFSRTask(String picFilename, String params) {
+		try {
+			File image = movefile(picFilename);
+			/*$newfilename = $base_dir ."\\" .$newname.$ext;
+			$desturl = $base_dir ."\\" .$newname."_res".$ext;*/
+
+			String imagepath = image.getAbsolutePath();
+			String ext = FileUtils.getExt(imagepath);
+			String resultpath = imagepath.replace(ext, "_res" + ext);
+			Fsrtask f = new Fsrtask();
+			f.setImagepath(imagepath);
+			f.setResultpath(resultpath);
+			f.setParams(params);
+			f.setStatus(0);
+			f.setProgress(0);
+			fsrtaskDao.save(f);
+			return f;
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
+
+	}
+
+	@Override
+	public List queryFSRTaskList() {
+		try {
+			Config c = configDao.getConfig();
+			String dataPath = c.getDataPath();
+			int len = dataPath.length() + 11;
+			/*select taskid, 
+			 * resultpath, 
+			 * right(resultpath,char_length(resultpath)-char_length(data_path)-11), 
+			 * imagepath, 
+			 * right(imagepath,char_length(imagepath)-char_length(data_path)-11), 
+			 * status, progress, 
+			 * params from tbl_FSRTask, config');        
+			*/
+			FsrtaskListVo v;
+			Fsrtask f;
+			List<Fsrtask> list = fsrtaskDao.getAll();
+			String resultpath;
+			String imagepath;
+			List newList = new ArrayList();
+			for (int i = 0; i < list.size(); i++) {
+				f = list.get(i);
+				v = new FsrtaskListVo();
+				BeanUtils.copyProperties(f, v);
+				/*这三个是要处理的属性
+				 resultUrl;
+				 orgPath;
+				 orgUrl;*/
+				resultpath = f.getResultpath();
+				imagepath = f.getImagepath();
+				v.setResultUrl(resultpath.length() > len ? resultpath.substring(len) : resultpath);
+				v.setOrgPath(imagepath);
+				v.setOrgUrl(imagepath.length() > len ? imagepath.substring(len) : imagepath);
+				newList.add(v);
+			}
+			return newList;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public FsrtaskVo queryFSRTask(Integer id) {
+		try {
+			Config c = configDao.getConfig();
+			String dataPath = c.getDataPath();
+			int len = dataPath.length() + 11;
+			Fsrtask f = fsrtaskDao.get(id);
+			if (null == f) {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			FsrtaskVo v = new FsrtaskVo();
+
+			BeanUtils.copyProperties(f, v);
+			/*这三个是要处理的属性
+			 resultUrl;
+			 orgPath;
+			 orgUrl;*/
+			String resultpath = f.getResultpath();
+			String imagepath = f.getImagepath();
+			v.setSourceUrl(imagepath);
+			v.setDownloadUrl(imagepath.length() > len ? imagepath.substring(len) : imagepath);
+			v.setResultUrl(resultpath.length() > len ? resultpath.substring(len) : resultpath);
+			return v;
+		} catch (Exception e) {
+			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public void deleteFSRTask(Integer id) {
+		try {
+			Fsrtask f = fsrtaskDao.get(id);
+			if (null == f) {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			fsrtaskDao.delete(f);
+		} catch (Exception e) {
+			throw new ServiceException(Status.DEL_ERROR, e);
 		}
 
 	}

@@ -3,16 +3,23 @@ package cn.jiuling.distributedapi.service;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
 import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
 import cn.jiuling.distributedapi.Vo.DownloadTasksVo;
+import cn.jiuling.distributedapi.Vo.EnhanceTaskVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
+import cn.jiuling.distributedapi.Vo.FsrtaskVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
+import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
 import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
+import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
+import cn.jiuling.distributedapi.model.EnhanceTask;
 import cn.jiuling.distributedapi.model.Externaltask;
+import cn.jiuling.distributedapi.model.Fsrtask;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 
 public interface VideoService {
@@ -91,5 +98,36 @@ public interface VideoService {
 	public List<UnAssignVideoVo> queryUnAssignVideo(Long caseid);
 
 	public void assigningtask(Long userid, List<Long> videoIdList);
+
+	public List<UnAssignVideoVo> queryunhandledtask(Long userid);
+
+	public void modifyHandletask(Short command, List<Long> videoIdList);
+
+	public List<AssignedtaskVo> queryassignedtasklist(Long caseid);
+
+	public EnhanceTask addPicEnhance(Short type, String picFilename, Integer iWidth, Integer iHeight, Short iWTDering, Short iWTDenoise, Short iUseGPU,
+			Timestamp createTime, Short priority, Float density);
+
+	public EnhanceTask addVideoEnhance(Short type, Long videoid, String sourceUrl, Integer iWidth, Integer iHeight, Short iWTDering, Short iWTDenoise,
+			Short iUseGPU, Timestamp createTime, Short priority, Float density);
+
+	public EnhanceTaskVo queryEnhance(Long id);
+
+	public List<VideoEnhanceListVo> queryVideoEnhanceList(Short type);
+
+	public List<PicEnhanceListVo> queryPicEnhanceList(Short type);
+
+	public void deleteEnhanceTask(Long id);
+
+	public List querychildlist(Long videoid, Integer analyseStartindex, Integer analyseCount, Integer denoiseStartindex, Integer denoiseCount,
+			Integer dehazeStartindex, Integer dehazeCount, Integer nightEnhanceStartindex, Integer nightEnhanceCount);
+
+	public Fsrtask addFSRTask(String picFilename, String params);
+
+	public List queryFSRTaskList();
+
+	public FsrtaskVo queryFSRTask(Integer id);
+
+	public void deleteFSRTask(Integer id);
 
 }

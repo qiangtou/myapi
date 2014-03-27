@@ -93,6 +93,11 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 
 	@Override
 	public Long getCount(String sql) {
+		String lowerSql = sql.toLowerCase();
+		int fromIndex = lowerSql.indexOf("from");
+		if (fromIndex > -1) {
+			sql = sql.substring(fromIndex);
+		}
 		sql = "select count(*) " + sql;
 		List list = getHibernateTemplate().find(sql);
 		return (Long) list.get(0);

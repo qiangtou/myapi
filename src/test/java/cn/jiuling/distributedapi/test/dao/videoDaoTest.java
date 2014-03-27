@@ -20,4 +20,14 @@ public class videoDaoTest extends BaseTest {
 	public void queryUnAssignVideo() {
 		videoDao.queryUnAssignVideo(1l);
 	}
+
+	@Test
+	public void queryunhandledtask() {
+		videoDao.queryunhandledtask(1l);
+	}
+
+	@Test
+	public void queryassignedtasklist() {
+		videoDao.queryassignedtasklist(1l);
+	}
 }

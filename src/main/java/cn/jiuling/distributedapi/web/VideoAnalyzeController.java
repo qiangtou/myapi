@@ -14,12 +14,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.AutoAnalyseParamVo;
 import cn.jiuling.distributedapi.Vo.Autoanalyseparam4cameraVo;
+import cn.jiuling.distributedapi.Vo.EnhanceTaskVo;
 import cn.jiuling.distributedapi.Vo.ExternaltaskVo;
 import cn.jiuling.distributedapi.Vo.ExttaskstatusVo;
+import cn.jiuling.distributedapi.Vo.FsrtaskVo;
+import cn.jiuling.distributedapi.Vo.IdRes;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.OrgvideofragmenturlRes;
+import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.SnapshotzipurlRes;
 import cn.jiuling.distributedapi.Vo.Status;
@@ -29,8 +34,11 @@ import cn.jiuling.distributedapi.Vo.TotalRes;
 import cn.jiuling.distributedapi.Vo.TranscodeStatusVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.Vo.UseruploadvideoVo;
+import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
 import cn.jiuling.distributedapi.exception.ServiceException;
+import cn.jiuling.distributedapi.model.EnhanceTask;
 import cn.jiuling.distributedapi.model.Externaltask;
+import cn.jiuling.distributedapi.model.Fsrtask;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
 import cn.jiuling.distributedapi.utils.ResponseUtils;
@@ -43,6 +51,7 @@ import cn.jiuling.distributedapi.utils.ResponseUtils;
  */
 @Controller
 @RequestMapping(produces = "text/html;charset=utf-8")
+// @RequestMapping(produces = "application/xml;charset=utf-8")
 public class VideoAnalyzeController extends BaseController {
 	@Resource
 	private VideoService videoService;
@@ -593,5 +602,282 @@ public class VideoAnalyzeController extends BaseController {
 		}
 		videoService.assigningtask(userid, videoIdList);
 		return ResponseUtils.parse(new ResStatus(Status.EXECUTE_SUCCESS));
+	}
+
+	/**
+	 * 6.20查询未处理任务列表
+	 * 
+	 * @param userid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=queryunhandledtask" })
+	@ResponseBody
+	public String queryunhandledtask(@RequestParam Long userid) {
+		List<UnAssignVideoVo> uList = videoService.queryunhandledtask(userid);
+		TotalRes rs = new TotalRes(Status.MODIFY_SUCCESS, uList.size());
+		return ResponseUtils.parse(rs, uList);
+	}
+
+	/**
+	 * 6.21修改处理任务的状态
+	 * 
+	 * 接受多个参数:uploadvideoid_1,uploadvideoid_2,uploadvideoid_3,...个数由count定
+	 * 
+	 * @param command
+	 * @param count
+	 * @return
+	 */
+
+	@RequestMapping("handletask.php")
+	@ResponseBody
+	public String handletask(
+			@RequestParam(required = false, defaultValue = "0") Short command,
+			@RequestParam Long count,
+			HttpServletRequest req) {
+		Long videoId;
+		if (count == 0) {
+			throw new ServiceException(Status.NO_TASK);
+		}
+		List<Long> videoIdList = new ArrayList<Long>();
+		for (int i = 1; i <= count.intValue(); i++) {
+			String value = req.getParameter("uploadvideoid_" + i);
+			if (value == null) {
+				throw new ServiceException(Status.PARAMETER_ERROR);
+			}
+			videoId = Long.valueOf(value);
+			videoIdList.add(videoId);
+		}
+		videoService.modifyHandletask(command, videoIdList);
+		return ResponseUtils.parse(new ResStatus(Status.MODIFY_SUCCESS));
+	}
+
+	/**
+	 * 6.22查询任务分配列表
+	 * 
+	 * @param caseid
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=queryassignedtasklist" })
+	@ResponseBody
+	public String queryassignedtasklist(@RequestParam Long caseid) {
+		List<AssignedtaskVo> avList = videoService.queryassignedtasklist(caseid);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), avList);
+	}
+
+	/**
+	 * 6.23提交图片增强
+	 * 
+	 * @param type
+	 * @param picFilename
+	 * @param iWidth
+	 * @param iHeight
+	 * @param iWTDering
+	 * @param iWTDenoise
+	 * @param iUseGPU
+	 * @param createTime
+	 * @param priority
+	 * @param density
+	 * @return
+	 */
+	@RequestMapping("addPicEnhance.php")
+	@ResponseBody
+	public String addVideoEnhance(
+			@RequestParam Short type,
+			@RequestParam String picFilename,
+			Integer iWidth,
+			Integer iHeight,
+			Short iWTDering,
+			Short iWTDenoise,
+			Short iUseGPU,
+			@RequestParam Timestamp createTime,
+			@RequestParam Short priority,
+			@RequestParam(required = false, defaultValue = "0") Float density) {
+		EnhanceTask e = videoService.addPicEnhance(type, picFilename, iWidth, iHeight, iWTDering, iWTDenoise, iUseGPU, createTime, priority, density);
+		IdRes rs = new IdRes(Status.ADD_SUCCESS, e.getTaskId());
+		return ResponseUtils.parse(rs);
+	}
+
+	/**
+	 * 6.24提交视频增强
+	 * 
+	 * @param type
+	 * @param videoid
+	 * @param iWidth
+	 * @param iHeight
+	 * @param iWTDering
+	 * @param iWTDenoise
+	 * @param iUseGPU
+	 * @param createTime
+	 * @param priority
+	 * @param density
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=AddVideoEnhance" })
+	@ResponseBody
+	public String AddVideoEnhance(
+			@RequestParam Short type,
+			@RequestParam Long videoid,
+			@RequestParam String sourceUrl,
+			Integer iWidth,
+			Integer iHeight,
+			Short iWTDering,
+			Short iWTDenoise,
+			Short iUseGPU,
+			@RequestParam Timestamp createTime,
+			@RequestParam Short priority,
+			@RequestParam(required = false, defaultValue = "0") Float density) {
+		EnhanceTask e = videoService.addVideoEnhance(type, videoid, sourceUrl, iWidth, iHeight, iWTDering, iWTDenoise, iUseGPU, createTime, priority, density);
+		IdRes rs = new IdRes(Status.ADD_SUCCESS, e.getTaskId());
+		return ResponseUtils.parse(rs);
+	}
+
+	/**
+	 * 6.25查询增强进度
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryEnhance" })
+	@ResponseBody
+	public String queryEnhance(
+			@RequestParam Long id) {
+		EnhanceTaskVo ev = videoService.queryEnhance(id);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), ev, false);
+	}
+
+	/**
+	 * 6.26 查询视频增强列表
+	 * 
+	 * @param type
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryVideoEnhanceList" })
+	@ResponseBody
+	public String queryVideoEnhanceList(
+			@RequestParam Short type) {
+		List<VideoEnhanceListVo> list = videoService.queryVideoEnhanceList(type);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), list);
+	}
+
+	/**
+	 * 6.27 查询图片增强列表
+	 * 
+	 * @param type
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryPicEnhanceList" })
+	@ResponseBody
+	public String queryPicEnhanceList(
+			@RequestParam Short type) {
+		List<PicEnhanceListVo> list = videoService.queryPicEnhanceList(type);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), list);
+	}
+
+	/**
+	 * 6.28 删除增强任务
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=DeleteEnhanceTask" })
+	@ResponseBody
+	public String deleteEnhanceTask(
+			@RequestParam Long id) {
+		videoService.deleteEnhanceTask(id);
+		return ResponseUtils.parse(new ResStatus(Status.DEL_SUCCESS));
+	}
+
+	/**
+	 * 6.29 查询根视频下的子目录列表
+	 * 
+	 * @param videoid
+	 * @param analyse_startindex
+	 * @param analyse_count
+	 * @param denoise_startindex
+	 * @param denoise_count
+	 * @param dehaze_startindex
+	 * @param dehaze_count
+	 * @param nightEnhance_startindex
+	 * @param nightEnhance_count
+	 * @return
+	 */
+	@RequestMapping(value = "querychildlist.php", params = { "command=QueryVideoInfo" })
+	@ResponseBody
+	public String querychildlist(
+			@RequestParam Long videoid,
+			@RequestParam(required = false, defaultValue = "0") Integer analyse_startindex,
+			@RequestParam(required = false, defaultValue = "10") Integer analyse_count,
+			Integer denoise_startindex,
+			Integer denoise_count,
+			Integer dehaze_startindex,
+			Integer dehaze_count,
+			Integer nightEnhance_startindex,
+			Integer nightEnhance_count) {
+
+		List list = videoService.querychildlist(videoid,
+				analyse_startindex, analyse_count,
+				denoise_startindex, denoise_count,
+				dehaze_startindex, dehaze_count,
+				nightEnhance_startindex, nightEnhance_count
+				);
+
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), list);
+	}
+
+	/**
+	 * TODO 6.30 添加低分辨率人脸重建（以下简称FSR）任务
+	 * 
+	 * @param picFilename
+	 *            图片文件名
+	 * @param params
+	 *            备用字段，参数设置，XML格式
+	 * @return
+	 */
+	@RequestMapping("addFSRTask.php")
+	@ResponseBody
+	public String addFSRTask(
+			@RequestParam String picFilename,
+				String params) {
+		Fsrtask f = videoService.addFSRTask(picFilename, params);
+
+		return ResponseUtils.parse(new IdRes(Status.ADD_SUCCESS, f.getTaskid()));
+	}
+
+	/**
+	 * 6.31 查询FSR列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryFSRTaskList" })
+	@ResponseBody
+	public String queryFSRTaskList() {
+		List list = videoService.queryFSRTaskList();
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), list);
+	}
+
+	/**
+	 * 6.32 查询FSR进度
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=QueryFSRTask" })
+	@ResponseBody
+	public String queryFSRTask(@RequestParam Integer id) {
+		FsrtaskVo f = videoService.queryFSRTask(id);
+		return ResponseUtils.parse(new ResStatus(Status.QUERY_SUCCESS), f, false);
+	}
+
+	/**
+	 * 6.33 删除FSR任务
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "server.php", params = { "command=DeleteFSRTask" })
+	@ResponseBody
+	public String deleteFSRTask(@RequestParam Integer id) {
+		videoService.deleteFSRTask(id);
+		return ResponseUtils.parse(new ResStatus(Status.DEL_SUCCESS));
 	}
 }

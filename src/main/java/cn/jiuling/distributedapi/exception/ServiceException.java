@@ -30,9 +30,8 @@ public class ServiceException extends RuntimeException {
 	}
 
 	public ServiceException(Status status, String msg) {
-		this(status);
-		status.setDesc(msg + ":" + status.getDesc());
-
+		this(msg + ":" + status.getDesc());
+		this.status = status;
 	}
 
 	public ServiceException(Status status, Throwable cause) {

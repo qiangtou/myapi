@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
+import cn.jiuling.distributedapi.Vo.ReturnData;
 import cn.jiuling.distributedapi.dao.ExternaltaskDao;
 import cn.jiuling.distributedapi.model.Externaltask;
 
@@ -63,6 +64,22 @@ public class ExternaltaskDaoImpl extends BaseDaoImpl<Externaltask> implements Ex
 			return (Externaltask) list.get(0);
 		}
 		return null;
+	}
+
+	@Override
+	public ReturnData findAnalyse(Long videoid, Integer index, Integer count) {
+		/*SELECT flownumber, g.generate_status_flag
+		FROM externaltask e, generatevideo g
+		WHERE useruploadvideoid = $videoid AND e.taskid = g.generateid
+		ORDER BY flownumber DESC
+		LIMIT $analyse_startindex,$analyse_count*/
+
+		String queryString = "select new cn.jiuling.distributedapi.Vo.AnalyseEleVo(e.flowNumber,g.generateStatusFlag) from Externaltask e,Generatevideo g where g.generateId=e.taskId and e.userUploadVideoId="
+				+ videoid;
+		Long totalCount = super.getCount(queryString);
+		List list = super.find(queryString, index, count);
+		ReturnData rd = new ReturnData(totalCount, list);
+		return rd;
 	}
 
 }

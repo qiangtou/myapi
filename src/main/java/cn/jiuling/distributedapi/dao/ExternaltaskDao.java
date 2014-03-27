@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import cn.jiuling.distributedapi.Vo.QueryTaskVo;
+import cn.jiuling.distributedapi.Vo.ReturnData;
 import cn.jiuling.distributedapi.model.Externaltask;
 
 public interface ExternaltaskDao extends BaseDao<Externaltask> {
@@ -23,5 +24,7 @@ public interface ExternaltaskDao extends BaseDao<Externaltask> {
 	public List<QueryTaskVo> queryTask(Integer uploadvideoid, String dataPath);
 
 	public Externaltask getLastTask(Integer videoid);
+
+	public ReturnData findAnalyse(Long videoid, Integer index, Integer count);
 
 }

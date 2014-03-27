@@ -33,7 +33,8 @@ public enum Status {
 	TASK_TYPE_ERRER(1021, "TASK_TYPE_ERRER"),
 	EXECUTE_SUCCESS(0, "execute success"),
 	EXECUTE_ERROR(0, "Execute fail"),
-	NO_TASK(0, "no task assigning")
+	NO_TASK(0, "no task assigning"),
+	TYPE_ERROR(1021, "type error")
 
 	;
 

@@ -199,7 +199,7 @@
 				<version>6.1.26</version>
 				<configuration>
 					<contextPath>/</contextPath>
-					<scanIntervalSeconds>5</scanIntervalSeconds>
+					<scanIntervalSeconds>3</scanIntervalSeconds>
 					<!-- jetty 在修改静态文件时解除锁定 -->
 					<webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>
 					<connectors>
