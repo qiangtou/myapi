@@ -14,4 +14,6 @@ public interface CaseDao extends BaseDao<Case> {
 
 	public CaseVideoVo queryCaseVideo(Long caseid);
 
+	public List queryDeleted();
+
 }

@@ -7,7 +7,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -147,22 +146,13 @@ public class UserController extends BaseController {
 	 */
 	@RequestMapping(params = { "command=ModifyUser" })
 	@ResponseBody
-	public Object modifyUser(@RequestParam Integer userid, String username, String fullname, Byte blocked, Integer groupid, Byte update_time_regular,
+	public Object modifyUser(@RequestParam Integer userid, String username, String fullname, Byte blocked,
+			@RequestParam Integer groupid, Byte update_time_regular,
 			String password) {
+		User user = new User(userid, username, fullname, blocked, groupid, update_time_regular, password);
+		userService.modifyUser(user);
 		ResStatus rs = new ResStatus();
-		if (StringUtils.isEmpty(userid) || StringUtils.isEmpty(username) || StringUtils.isEmpty(fullname) || StringUtils.isEmpty(blocked)
-				|| StringUtils.isEmpty(groupid) || StringUtils.isEmpty(update_time_regular) || StringUtils.isEmpty(password)) {
-			rs.setStatus(Status.PARAMETER_ERROR);
-		} else {
-			try {
-				User user = new User(userid, username, fullname, blocked, groupid, update_time_regular, password);
-				userService.modifyUser(user);
-				rs.setStatus(Status.MODIFY_SUCCESS);
-			} catch (Exception e) {
-				rs.setStatus(Status.SERVER_ERROR);
-				log.error(e.getMessage(), e);
-			}
-		}
+		rs.setStatus(Status.MODIFY_SUCCESS);
 		return ResponseUtils.parse(rs);
 	}
 

@@ -13,7 +13,7 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 
 	public User findByUserName(String userName) {
 		User user = null;
-		List<User> userList = getHibernateTemplate().find("select new User(u.userName, u.passWord, u.fullName, u.groupId) from User u where u.userName=?",
+		List<User> userList = getHibernateTemplate().find("from User u where u.userName=?",
 				userName);
 		if (userList.size() > 0) {
 			user = userList.get(0);

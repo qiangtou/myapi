@@ -47,7 +47,8 @@ public class ConfigUtils {
 	 * @return 属性的值
 	 */
 	public static String getValue(String key) {
-		return getValue(DEFAULT_FILE, key);
+		String value = getValue(DEFAULT_FILE, key);
+		return value;
 	}
 
 	public static void main(String[] args) {

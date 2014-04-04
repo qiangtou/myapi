@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import cn.jiuling.distributedapi.Vo.ResStatus;
 import cn.jiuling.distributedapi.Vo.Status;
+import cn.jiuling.distributedapi.Vo.VideoRes;
 import cn.jiuling.distributedapi.model.Useruploadvideo;
 import cn.jiuling.distributedapi.service.VideoService;
 import cn.jiuling.distributedapi.utils.ResponseUtils;
@@ -23,7 +23,7 @@ public class Video4AddController extends BaseController {
 	private VideoService videoService;
 
 	/**
-	 * TODO 添加视频
+	 * 5.1 添加视频
 	 * 
 	 * @param cameraid
 	 * @param video_filename
@@ -35,17 +35,23 @@ public class Video4AddController extends BaseController {
 	 */
 	@RequestMapping("addvideo.php")
 	@ResponseBody
-	public String addvideo(HttpSession session, @RequestParam Long cameraid, @RequestParam String video_filename,
-			@RequestParam Timestamp record_time,
-			Timestamp createtime, @RequestParam(required = false, defaultValue = "0") Short isautosubmit, Short video_type) {
-		// TODO 添加视频id从session中取?
-		Integer uid = getUserId(session);
-
-		Useruploadvideo v = new Useruploadvideo(cameraid, video_filename, record_time,
-					createtime, isautosubmit, video_type);
-
-		ResStatus rs = new ResStatus(Status.QUERY_SUCCESS);
-		return ResponseUtils.parse(rs);
+	public String addvideo(HttpSession session,
+			@RequestParam Long cameraid,
+			@RequestParam String video_filename,
+			Timestamp record_time,
+			Timestamp createtime,
+			@RequestParam(required = false, defaultValue = "0") Short isautosubmit,
+			@RequestParam(required = false, defaultValue = "0") Short video_type) {
+		Integer userId = getUserId(session);
+		if (record_time == null) {
+			record_time = new Timestamp(0L);
+		}
+		if (createtime == null) {
+			createtime = new Timestamp(System.currentTimeMillis());
+		}
+		Useruploadvideo v = videoService.addvideo(cameraid, video_filename, record_time,
+					createtime, isautosubmit, video_type, userId);
+		return ResponseUtils.parse(new VideoRes(Status.ADD_SUCCESS, v));
 	}
 
 }

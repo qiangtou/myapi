@@ -82,4 +82,41 @@ public class ExternaltaskDaoImpl extends BaseDaoImpl<Externaltask> implements Ex
 		return rd;
 	}
 
+	@Override
+	public void deleteByVideoId(Long id) {
+		/*		 DELETE externaltask
+				    FROM useruploadvideo, externaltask
+				    WHERE useruploadvideo.UserUploadVideoId = externaltask.UserUploadVideoId
+				        AND useruploadvideo.UserUploadVideoId = @videoid;*/
+		String queryString = "select e from Externaltask e,Useruploadvideo u where e.userUploadVideoId=u.userUploadVideoId and u.userUploadVideoId=?";
+		List list = getHibernateTemplate().find(queryString, id);
+		getHibernateTemplate().deleteAll(list);
+	}
+
+	@Override
+	public void deleteByCameraId(Long id) {
+		/* DELETE externaltask
+		    FROM tbl_camera, useruploadvideo, externaltask
+		    WHERE tbl_camera.ID=useruploadvideo.CameraID 
+		        AND useruploadvideo.UserUploadVideoId = externaltask.UserUploadVideoId
+		        AND tbl_camera.ID = @cameraid;*/
+		String queryString = "select e from Externaltask e,Camera c,Useruploadvideo u " +
+				"where c.id=? and c.id= u.cameraId and e.userUploadVideoId=u.userUploadVideoId";
+		List list = getHibernateTemplate().find(queryString, id);
+		getHibernateTemplate().deleteAll(list);
+	}
+
+	@Override
+	public void deleteByCaseId(Long id) {
+		/*DELETE externaltask
+		   FROM tbl_case, tbl_camera, useruploadvideo, externaltask
+		   WHERE tbl_case.ID = tbl_camera.caseID AND tbl_camera.ID=useruploadvideo.CameraID 
+		       AND useruploadvideo.UserUploadVideoId = externaltask.UserUploadVideoId
+		       AND tbl_case.ID = @caseid;*/
+		String queryString = "select e from Case ca,Externaltask e,Camera c,Useruploadvideo u " +
+				"where ca.id=? and ca.id=c.caseId and c.id= u.cameraId and e.userUploadVideoId=u.userUploadVideoId";
+		List list = getHibernateTemplate().find(queryString, id);
+		getHibernateTemplate().deleteAll(list);
+	}
+
 }

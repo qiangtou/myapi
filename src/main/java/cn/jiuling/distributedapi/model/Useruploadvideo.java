@@ -46,6 +46,18 @@ public class Useruploadvideo implements java.io.Serializable {
 
 	/** default constructor */
 	public Useruploadvideo() {
+		// 初始化默认值
+		this.status = 0;
+		this.lastErrCode = 0;
+		this.lastErrMsg = "";
+		this.progress = 0;
+		this.retryCount = 0;
+		this.lastTryVideoVendorType = -1;
+		this.duration = 0;
+		this.frameRate = 25;
+		this.isDeleted = 0;
+		this.resolution = "--";
+		this.space = 0;
 	}
 
 	/** minimal constructor */

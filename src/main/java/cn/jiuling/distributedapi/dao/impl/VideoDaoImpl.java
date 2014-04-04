@@ -14,6 +14,8 @@ import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
+import cn.jiuling.distributedapi.Vo.SnapshotFolderVo;
+import cn.jiuling.distributedapi.Vo.SnapshotVo;
 import cn.jiuling.distributedapi.Vo.StatusInfoVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
@@ -419,5 +421,386 @@ public class VideoDaoImpl extends BaseDaoImpl<Useruploadvideo> implements VideoD
 		List list = super.getHibernateTemplate().find(queryString, enhanceType);
 
 		return list;
+	}
+
+	@Override
+	public void deleteByCameraId(Long id) {
+		/* DELETE useruploadvideo
+		    FROM tbl_camera, useruploadvideo
+		    WHERE tbl_camera.ID=useruploadvideo.CameraID 
+		        AND tbl_camera.ID = @cameraid;*/
+		String queryString = "select u from Camera c,Useruploadvideo u " +
+				"where c.id=? and c.id= u.cameraId ";
+		List list = getHibernateTemplate().find(queryString, id);
+		getHibernateTemplate().deleteAll(list);
+	}
+
+	@Override
+	public void deleteByCaseId(Long id) {
+		/*DELETE useruploadvideo
+		FROM tbl_case, tbl_camera, useruploadvideo
+		WHERE tbl_case.ID = tbl_camera.caseID AND tbl_camera.ID=useruploadvideo.CameraID 
+		    AND tbl_case.ID = @caseid;
+		*/
+		String queryString = "select u from Case ca,Camera c,Useruploadvideo u " +
+				"where ca.id=? and ca.id=c.caseId and c.id= u.cameraId ";
+		List list = getHibernateTemplate().find(queryString, id);
+		getHibernateTemplate().deleteAll(list);
+	}
+
+	@Override
+	public Long queryAutoTask(Long caseid, Long userid) {
+		/*		useruploadvideo u, tbl_case c, tbl_camera m 
+		 * WHERE c.id = caseid AND m.caseid = c.id AND u.cameraid = m.id 
+		 * AND u.isAutoSubmit = 1  AND u.userid = userid;
+		*/
+		String sql = " from Case ca,Camera c,Useruploadvideo u" +
+				" where ca.id=? and ca.id=c.caseId and c.id= u.cameraId and u.isAutoSubmit=1 and u.userid=?";
+		return super.getCount(sql, new Object[] { caseid, userid });
+	}
+
+	@Override
+	public List queryDeleted() {
+		/*SELECT useruploadvideoid,destUrl,timestamp,1 FROM useruploadvideo WHERE is_deleted = 1'
+		*/String queryString = "select new cn.jiuling.distributedapi.Vo.DeletedObjVo(" +
+				"u.userUploadVideoId,u.destUrl,u.timestamp,1) " +
+				"from Useruploadvideo u where u.isDeleted=1";
+		return super.getHibernateTemplate().find(queryString);
+	}
+
+	@Override
+	public SnapshotFolderVo querySnapshotFolder(String flownumber) {
+		/*	"select a.snapshot_folder, e.localFilename from analysisvideo a, generatevideo g,
+		 * externaltask e, useruploadvideo u where
+			a.analysisid = g.analysisid and g.generateid = e.taskID  and e.flownumber = '$flowNumber' LIMIT 1";
+		*/
+		String queryString = "select new cn.jiuling.distributedapi.Vo.SnapshotFolderVo(" +
+				"g.snapshotFolder,e.localFilename) from Generatevideo g,Externaltask e,Useruploadvideo u where " +
+				"u.userUploadVideoId=e.userUploadVideoId and g.generateId=e.taskId and " +
+				"e.flowNumber=?";
+		List list = super.getHibernateTemplate().find(queryString, flownumber);
+		if (list.size() > 0) {
+			return (SnapshotFolderVo) list.get(0);
+		}
+		return null;
+	}
+
+	@Override
+	public SnapshotVo queryTubeSnapshot(Integer taskId, int index, int count, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo) {
+		StringBuilder queryString = new StringBuilder();;
+		if (objType == 0) {
+			/*$basesql = "SELECT distinct tss.TubeSnapshotID, tss.filename, tss.appear_start_frm_idx, (t.end_frm_idx_org - tss.appear_start_frm_idx) as num_of_frm, tss.frame_idx 
+				FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss 
+				WHERE tss.appear_start_frm_idx <= g.end_frm
+				AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm 
+				AND tss.TubeID = t.TubeID 
+				AND t.AnalysisID = a.AnalysisID 
+				AND g.AnalysisID = a.AnalysisID 
+				AND CHAR_LENGTH(tss.filename) <> 0
+				AND g.GenerateID = $sumVidDBKey";
+			*/
+			queryString
+					.append(
+							" SELECT distinct tss.TubeSnapshotID, tss.filename, tss.appear_start_frm_idx, (t.end_frm_idx_org - tss.appear_start_frm_idx) as num_of_frm, tss.frame_idx")
+					.append(" FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss ")
+					.append(" WHERE tss.appear_start_frm_idx <= g.end_frm")
+					.append(" AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm")
+					.append(" AND tss.TubeID = t.TubeID ")
+					.append(" AND t.AnalysisID = a.AnalysisID")
+					.append(" AND g.AnalysisID = a.AnalysisID ")
+					.append(" AND CHAR_LENGTH(tss.filename) <> 0")
+					.append(" AND g.GenerateID = " + taskId);
+
+			if (objSize == 1) {
+				queryString.append(
+						" AND tss.width*tss.height >= (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss")
+								.append(" WHERE tss.appear_start_frm_idx <= g.end_frm")
+								.append(" AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm ")
+								.append(" AND tss.TubeID = t.TubeID ")
+								.append(" AND t.AnalysisID = a.AnalysisID ")
+								.append(" AND g.AnalysisID = a.AnalysisID ")
+								.append(" AND CHAR_LENGTH(tss.filename) <> 0")
+								.append(" AND g.GenerateID = " + taskId + ")*2/3");
+			} else if (objSize == 2) {
+				queryString
+						.append(
+								" AND tss.width*tss.height < (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss")
+								.append(" WHERE tss.appear_start_frm_idx <= g.end_frm")
+								.append(" AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm ")
+								.append(" AND tss.TubeID = t.TubeID ")
+								.append(" AND t.AnalysisID = a.AnalysisID ")
+								.append(" AND g.AnalysisID = a.AnalysisID ")
+								.append(" AND CHAR_LENGTH(tss.filename) <> 0")
+								.append(
+										" AND g.GenerateID = $sumVidDBKey)*2/3 AND tss.width*tss.height >= (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss ")
+								.append(" WHERE tss.appear_start_frm_idx <= g.end_frm")
+								.append(" AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm ")
+								.append(" AND tss.TubeID = t.TubeID ")
+								.append(" AND t.AnalysisID = a.AnalysisID ")
+								.append(" AND g.AnalysisID = a.AnalysisID ")
+								.append(" AND CHAR_LENGTH(tss.filename) <> 0")
+								.append(" AND g.GenerateID = " + taskId + ")*1/3");
+			} else if (objSize == 3) {
+				queryString.append(
+						" AND tss.width*tss.height < (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss")
+								.append(" WHERE tss.appear_start_frm_idx <= g.end_frm")
+								.append(" AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm ")
+								.append(" AND tss.TubeID = t.TubeID ")
+								.append(" AND t.AnalysisID = a.AnalysisID ")
+								.append(" AND g.AnalysisID = a.AnalysisID ")
+								.append(" AND CHAR_LENGTH(tss.filename) <> 0")
+								.append(" AND g.GenerateID = " + taskId + ")*1/3");
+			}
+
+			/*			//按尺寸过滤条件
+						switch($objSize) 
+						{
+						case 0 :
+							$objSizeSql = " ";
+							break;
+						case 1 : 
+							$objSizeSql = "AND tss.width*tss.height >= (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss 
+								WHERE tss.appear_start_frm_idx <= g.end_frm
+								AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm 
+								AND tss.TubeID = t.TubeID 
+								AND t.AnalysisID = a.AnalysisID 
+								AND g.AnalysisID = a.AnalysisID 
+								AND CHAR_LENGTH(tss.filename) <> 0
+								AND g.GenerateID = $sumVidDBKey)*2/3";
+							break;
+						case 2:
+							$objSizeSql = "AND tss.width*tss.height < (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss 
+								WHERE tss.appear_start_frm_idx <= g.end_frm
+								AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm 
+								AND tss.TubeID = t.TubeID 
+								AND t.AnalysisID = a.AnalysisID 
+								AND g.AnalysisID = a.AnalysisID 
+								AND CHAR_LENGTH(tss.filename) <> 0
+								AND g.GenerateID = $sumVidDBKey)*2/3 AND tss.width*tss.height >= (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss 
+								WHERE tss.appear_start_frm_idx <= g.end_frm
+								AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm 
+								AND tss.TubeID = t.TubeID 
+								AND t.AnalysisID = a.AnalysisID 
+								AND g.AnalysisID = a.AnalysisID 
+								AND CHAR_LENGTH(tss.filename) <> 0
+								AND g.GenerateID = $sumVidDBKey)*1/3";
+							break;
+						case 3:
+							$objSizeSql = "AND tss.width*tss.height < (SELECT max(tss.width*tss.height) FROM GenerateVideo g, AnalysisVideo a, Tube t, TubeSnapshotInfo tss 
+								WHERE tss.appear_start_frm_idx <= g.end_frm
+								AND tss.appear_start_frm_idx+tss.num_of_frm > g.start_frm 
+								AND tss.TubeID = t.TubeID 
+								AND t.AnalysisID = a.AnalysisID 
+								AND g.AnalysisID = a.AnalysisID 
+								AND CHAR_LENGTH(tss.filename) <> 0
+								AND g.GenerateID = $sumVidDBKey)*1/3";
+							break;
+						default:
+							$objSizeSql = "";
+							break;
+						}       
+			*/
+
+			/*		//排序方式
+					switch($sortType) 
+					{
+					case 1 : 
+						$sortTypeSql = "order by tss.frame_idx";
+						break;
+					case 2:
+						$sortTypeSql = "order by tss.width*tss.height";
+						break;
+					default:
+						$sortTypeSql = "order by tss.frame_idx";
+						break;
+					}*/
+			if (sortType == 2) {
+				queryString.append(" order by tss.width*tss.height");
+			} else {
+				queryString.append(" order by tss.frame_idx");
+			}
+			/*// 排序方向
+			if ($sortOrder == 0) {
+				$sortOrderSql = "asc";
+			} else {
+				$sortOrderSql = "desc";
+			}*/
+
+			if (sortOrder == 0) {
+				queryString.append(" asc");
+			} else {
+				queryString.append(" desc");
+			}
+		} else {
+			queryString
+					.append("SELECT distinct o.ObjectID, osr.snap_filename, o.start_frm_idx, (o.end_frm_idx-o.start_frm_idx) as snapshotNumOfFrm, ")
+					.append(
+							" o.snapshot_frm_idx, o.avg_color_mean_R, o.avg_color_mean_G, o.avg_color_mean_B, o.avg_upper_body_mean_R, o.avg_upper_body_mean_G, o.avg_upper_body_mean_B,")
+					.append(" o.avg_lower_body_mean_R, o.avg_lower_body_mean_G, o.avg_lower_body_mean_B")
+					.append(" FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of ")
+					.append(" WHERE o.start_frm_idx <= g.end_frm")
+					.append(" AND o.end_frm_idx > g.start_frm  ")
+					.append(" AND o.ObjectID = osr.ObjectID ")
+					.append(" AND of.ObjectID = o.ObjectID ")
+					.append(" AND o.snapshot_frm_idx = of.objFrame_idx ")
+					.append(" AND osr.GenerateID = g.GenerateID ")
+					.append(" AND g.AnalysisID = a.AnalysisID ")
+					.append(" AND CHAR_LENGTH(osr.snap_filename) <> 0 ")
+					.append(" AND g.GenerateID = " + taskId);
+
+			/*	switch($objSize) 
+				{
+				case 0 :
+					$objSizeSql = " ";
+					break;
+				case 1 : 
+					$objSizeSql = "AND of.obj_bb_width*of.obj_bb_height >= (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of 
+						WHERE o.start_frm_idx <= g.end_frm
+						AND o.end_frm_idx > g.start_frm  
+						AND o.ObjectID = osr.ObjectID 
+						AND of.ObjectID = o.ObjectID 
+						AND o.snapshot_frm_idx = of.objFrame_idx 
+						AND osr.GenerateID = g.GenerateID 
+						AND g.AnalysisID = a.AnalysisID 
+						AND CHAR_LENGTH(osr.snap_filename) <> 0 
+						AND g.GenerateID = " . $sumVidDBKey.")*2/3";
+					break;
+				case 2:
+					$objSizeSql = "AND of.obj_bb_width*of.obj_bb_height < (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of 
+						WHERE o.start_frm_idx <= g.end_frm
+						AND o.end_frm_idx > g.start_frm  
+						AND o.ObjectID = osr.ObjectID 
+						AND of.ObjectID = o.ObjectID 
+						AND o.snapshot_frm_idx = of.objFrame_idx 
+						AND osr.GenerateID = g.GenerateID 
+						AND g.AnalysisID = a.AnalysisID 
+						AND CHAR_LENGTH(osr.snap_filename) <> 0 
+						AND g.GenerateID = " . $sumVidDBKey.")*2/3 AND of.obj_bb_width*of.obj_bb_height >= (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of 
+						WHERE o.start_frm_idx <= g.end_frm
+						AND o.end_frm_idx > g.start_frm  
+						AND o.ObjectID = osr.ObjectID 
+						AND of.ObjectID = o.ObjectID 
+						AND o.snapshot_frm_idx = of.objFrame_idx 
+						AND osr.GenerateID = g.GenerateID 
+						AND g.AnalysisID = a.AnalysisID 
+						AND CHAR_LENGTH(osr.snap_filename) <> 0 
+						AND g.GenerateID = " . $sumVidDBKey.")*1/3";
+					break;
+				case 3:
+					$objSizeSql = "AND of.obj_bb_width*of.obj_bb_height < (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of 
+						WHERE o.start_frm_idx <= g.end_frm
+						AND o.end_frm_idx > g.start_frm  
+						AND o.ObjectID = osr.ObjectID 
+						AND of.ObjectID = o.ObjectID 
+						AND o.snapshot_frm_idx = of.objFrame_idx 
+						AND osr.GenerateID = g.GenerateID 
+						AND g.AnalysisID = a.AnalysisID 
+						AND CHAR_LENGTH(osr.snap_filename) <> 0 
+						AND g.GenerateID = " . $sumVidDBKey.")*1/3";
+					break;
+				default:
+					$objSizeSql = "";
+					break;
+				}       */
+
+			if (objSize == 1) {
+				queryString
+						.append(
+								" AND of.obj_bb_width*of.obj_bb_height >= (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of")
+						.append(" WHERE o.start_frm_idx <= g.end_frm")
+						.append(" AND o.end_frm_idx > g.start_frm  ")
+						.append(" AND o.ObjectID = osr.ObjectID ")
+						.append(" AND of.ObjectID = o.ObjectID ")
+						.append(" AND o.snapshot_frm_idx = of.objFrame_idx ")
+						.append(" AND osr.GenerateID = g.GenerateID ")
+						.append(" AND g.AnalysisID = a.AnalysisID ")
+						.append(" AND CHAR_LENGTH(osr.snap_filename) <> 0 ")
+						.append(" AND g.GenerateID = " + taskId + ")*2/3");
+			} else if (objSize == 2) {
+				queryString
+						.append(
+								" AND of.obj_bb_width*of.obj_bb_height < (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of")
+						.append(" WHERE o.start_frm_idx <= g.end_frm")
+						.append(" AND o.end_frm_idx > g.start_frm  ")
+						.append(" AND o.ObjectID = osr.ObjectID ")
+						.append(" AND of.ObjectID = o.ObjectID ")
+						.append(" AND o.snapshot_frm_idx = of.objFrame_idx ")
+						.append(" AND osr.GenerateID = g.GenerateID ")
+						.append(" AND g.AnalysisID = a.AnalysisID ")
+						.append(" AND CHAR_LENGTH(osr.snap_filename) <> 0 ")
+						.append(
+								" AND g.GenerateID = "
+										+ taskId
+										+ ")*2/3 AND of.obj_bb_width*of.obj_bb_height >= (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of")
+						.append(" WHERE o.start_frm_idx <= g.end_frm")
+						.append(" AND o.end_frm_idx > g.start_frm  ")
+						.append(" AND o.ObjectID = osr.ObjectID ")
+						.append(" AND of.ObjectID = o.ObjectID ")
+						.append(" AND o.snapshot_frm_idx = of.objFrame_idx ")
+						.append(" AND osr.GenerateID = g.GenerateID ")
+						.append(" AND g.AnalysisID = a.AnalysisID ")
+						.append(" AND CHAR_LENGTH(osr.snap_filename) <> 0 ")
+						.append(" AND g.GenerateID = " + taskId + ")*1/3");
+			} else if (objSize == 3) {
+				queryString
+						.append(
+								" AND of.obj_bb_width*of.obj_bb_height < (SELECT max(of.obj_bb_width*of.obj_bb_height) FROM AnalysisVideo a, GenerateVideo g, Object o, ObjectSearchResult osr, ObjectFrame of")
+						.append(" WHERE o.start_frm_idx <= g.end_frm")
+						.append(" AND o.end_frm_idx > g.start_frm  ")
+						.append(" AND o.ObjectID = osr.ObjectID ")
+						.append(" AND of.ObjectID = o.ObjectID ")
+						.append(" AND o.snapshot_frm_idx = of.objFrame_idx")
+						.append(" AND osr.GenerateID = g.GenerateID ")
+						.append(" AND g.AnalysisID = a.AnalysisID ")
+						.append(" AND CHAR_LENGTH(osr.snap_filename) <> 0")
+						.append(" AND g.GenerateID = " + taskId + ")*1/3");
+
+			}
+
+			/*// 排序方式
+			switch ($sortType) {
+			case 1:
+				$sortTypeSql = "order by o.snapshot_frm_idx";
+				break;
+			case 2:
+				$sortTypeSql = "order by of.obj_bb_width*of.obj_bb_height";
+				break;
+			case 3:
+				$sortTypeSql = "order by osr.distance, osr.ObjSearchID";
+				break;
+			default:
+				$sortTypeSql = "order by osr.distance, osr.ObjSearchID";
+				break;
+			}*/
+
+			if (sortType == 1) {
+				queryString.append(" order by o.snapshot_frm_idx");
+			} else if (sortType == 2) {
+				queryString.append(" order by of.obj_bb_width*of.obj_bb_height");
+			} else {
+				queryString.append(" order by osr.distance, osr.ObjSearchID");
+			}
+
+			if (sortOrder == 0) {
+				queryString.append(" asc");
+			} else {
+				if (sortType == 3) {
+					String str = "order by osr.distance,";
+					int start = queryString.indexOf(str);
+					if (start > -1) {
+						queryString.replace(start, start + str.length(), "order by osr.distance desc,");
+					}
+				}
+				queryString.append(" desc");
+			}
+
+		}
+		// 4则查全部
+		if (sortType == 4) {
+			index = 0;
+			count = -1;
+		}
+		List list = super.exeSql(queryString.toString(), index, count);
+		return null;
 	}
 }

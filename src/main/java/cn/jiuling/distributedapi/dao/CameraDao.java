@@ -8,4 +8,8 @@ public interface CameraDao extends BaseDao<Camera> {
 
 	public List queryCamera(String name, Long value);
 
+	public void deleteByCaseId(Long id);
+
+	public List queryDeleted();
+
 }

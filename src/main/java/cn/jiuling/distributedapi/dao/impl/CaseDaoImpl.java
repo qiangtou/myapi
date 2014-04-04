@@ -71,4 +71,13 @@ public class CaseDaoImpl extends BaseDaoImpl<Case> implements CaseDao {
 		List list = getHibernateTemplate().findByNamedParam(queryString, "caseid", caseid);
 		return (CaseVideoVo) (list.size() > 0 ? list.get(0) : null);
 	}
+
+	@Override
+	public List queryDeleted() {
+		/*SELECT id,title,createtime,3 FROM tbl_case WHERE is_deleted = 1''
+		*/String queryString = "select new cn.jiuling.distributedapi.Vo.DeletedObjVo(" +
+				"c.id,c.title,c.createtime,3) " +
+				"from Case c where c.isDeleted=1";
+		return super.getHibernateTemplate().find(queryString);
+	}
 }

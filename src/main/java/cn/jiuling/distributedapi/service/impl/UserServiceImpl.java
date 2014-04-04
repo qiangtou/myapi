@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +22,9 @@ import cn.jiuling.distributedapi.service.UserService;
 
 @Service("userService")
 public class UserServiceImpl implements UserService {
+
+	private final Logger log = Logger.getLogger(UserServiceImpl.class);
+
 	@Resource
 	private UserDao userDao;
 	@Resource
@@ -110,12 +114,24 @@ public class UserServiceImpl implements UserService {
 			User u = userDao.load(user.getUserId());
 			// User(userid, username, fullname, blocked, groupid,
 			// update_time_regular, password);
-			u.setUserName(user.getUserName());
-			u.setFullName(user.getFullName());
-			u.setBlocked(user.getBlocked());
-			u.setGroupId(user.getGroupId());
-			u.setUpdateTimeRegular(user.getUpdateTimeRegular());
-			u.setPassWord(user.getPassWord());
+			if (user.getUserName() != null) {
+				u.setUserName(user.getUserName());
+			}
+			if (user.getFullName() != null) {
+				u.setFullName(user.getFullName());
+			}
+			if (user.getBlocked() != null) {
+				u.setBlocked(user.getBlocked());
+			}
+			if (user.getGroupId() != null) {
+				u.setGroupId(user.getGroupId());
+			}
+			if (user.getUpdateTimeRegular() != null) {
+				u.setUpdateTimeRegular(user.getUpdateTimeRegular());
+			}
+			if (user.getPassWord() != null) {
+				u.setPassWord(user.getPassWord());
+			}
 			userDao.update(u);
 		} catch (Exception e) {
 			throw new ServiceException(Status.MODIFY_ERROR, e);
@@ -147,6 +163,35 @@ public class UserServiceImpl implements UserService {
 			return loginUser;
 		} catch (Exception e) {
 			throw new ServiceException(Status.QUERY_ERROR, e);
+		}
+	}
+
+	@Override
+	public boolean validOldPw(Integer userid, String oldpw) {
+		boolean flag = false;
+		User u;
+		try {
+			u = userDao.load(userid);
+			flag = u.getPassWord().equals(oldpw);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return flag;
+
+	}
+
+	@Override
+	public User modifyPw(Integer userid, String oldPw, String newPw) {
+		try {
+			User u = userDao.load(userid);
+			if (!u.getPassWord().equals(oldPw)) {
+				throw new ServiceException(Status.MODIFY_ERROR);
+			}
+			u.setPassWord(newPw);
+			userDao.update(u);
+			return u;
+		} catch (Exception e) {
+			throw new ServiceException(Status.MODIFY_ERROR, e);
 		}
 	}
 }

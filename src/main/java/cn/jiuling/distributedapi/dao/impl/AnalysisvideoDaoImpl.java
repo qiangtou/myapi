@@ -23,4 +23,18 @@ public class AnalysisvideoDaoImpl extends BaseDaoImpl<Analysisvideo> implements 
 		}
 		return null;
 	}
+
+	@Override
+	public Analysisvideo findByFlowNumber(String flowNumber) {
+		/*	select replace(av.complete_tbi_filename,''\\AstVS_1v2'','''') 
+		 * from externaltask et, generatevideo gv, analysisvideo av 
+		    where et.flowNumber = ',@FlowNumber, ' and et.TaskID = gv.GenerateID and gv.AnalysisID = av.AnalysisID'
+		*/
+		String queryString = "select g.analysisvideo from Generatevideo g,Externaltask e where e.taskId=g.generateId and e.flowNumber=?";
+		List list = super.getHibernateTemplate().find(queryString, flowNumber);
+		if (list.size() > 0) {
+			return (Analysisvideo) list.get(0);
+		}
+		return null;
+	}
 }

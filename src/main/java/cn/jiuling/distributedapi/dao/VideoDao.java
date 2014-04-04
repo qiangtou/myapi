@@ -6,6 +6,8 @@ import cn.jiuling.distributedapi.Vo.AssignedtaskVo;
 import cn.jiuling.distributedapi.Vo.ListResultVo;
 import cn.jiuling.distributedapi.Vo.PicEnhanceListVo;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
+import cn.jiuling.distributedapi.Vo.SnapshotFolderVo;
+import cn.jiuling.distributedapi.Vo.SnapshotVo;
 import cn.jiuling.distributedapi.Vo.StatusInfoVo;
 import cn.jiuling.distributedapi.Vo.UnAssignVideoVo;
 import cn.jiuling.distributedapi.Vo.VideoEnhanceListVo;
@@ -41,5 +43,17 @@ public interface VideoDao extends BaseDao<Useruploadvideo> {
 	public List<VideoEnhanceListVo> queryVideoEnhanceList(String enhanceType);
 
 	public List<PicEnhanceListVo> queryPicEnhanceList(String enhanceType);
+
+	public void deleteByCameraId(Long id);
+
+	public void deleteByCaseId(Long id);
+
+	public Long queryAutoTask(Long caseid, Long userid);
+
+	public List queryDeleted();
+
+	public SnapshotFolderVo querySnapshotFolder(String flownumber);
+
+	public SnapshotVo queryTubeSnapshot(Integer taskId, int index, int count, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo);
 
 }

@@ -41,6 +41,11 @@ public class Tubesnapshotinfo implements java.io.Serializable {
 	public Tubesnapshotinfo() {
 	}
 
+	public Tubesnapshotinfo(String filename) {
+		super();
+		this.filename = filename;
+	}
+
 	/** minimal constructor */
 	public Tubesnapshotinfo(Tube tube, Long frameIdx, Long numOfFrm, Short componentId) {
 		this.tube = tube;

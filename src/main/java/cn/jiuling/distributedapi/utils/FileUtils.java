@@ -2,12 +2,9 @@ package cn.jiuling.distributedapi.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
 
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 public class FileUtils {
 	// 验证字符串是否为正确路径名的正则表达式
@@ -16,69 +13,6 @@ public class FileUtils {
 	// sPath 为路径字符串
 	boolean flag = false;
 	File file;
-
-	public boolean DeleteFolder(String deletePath) {// 根据路径删除指定的目录或文件，无论存在与否
-		flag = false;
-		if (deletePath.matches(matches)) {
-			file = new File(deletePath);
-			if (!file.exists()) {// 判断目录或文件是否存在
-				return flag; // 不存在返回 false
-			} else {
-
-				if (file.isFile()) {// 判断是否为文件
-					return deleteFile(deletePath);// 为文件时调用删除文件方法
-				} else {
-					return deleteDirectory(deletePath);// 为目录时调用删除目录方法
-				}
-			}
-		} else {
-			System.out.println("要传入正确路径！");
-			return false;
-		}
-	}
-
-	public boolean deleteFile(String filePath) {// 删除单个文件
-		flag = false;
-		file = new File(filePath);
-		if (file.isFile() && file.exists()) {// 路径为文件且不为空则进行删除
-			file.delete();// 文件删除
-			flag = true;
-		}
-		return flag;
-	}
-
-	public boolean deleteDirectory(String dirPath) {// 删除目录（文件夹）以及目录下的文件
-		// 如果sPath不以文件分隔符结尾，自动添加文件分隔符
-		if (!dirPath.endsWith(File.separator)) {
-			dirPath = dirPath + File.separator;
-		}
-		File dirFile = new File(dirPath);
-		// 如果dir对应的文件不存在，或者不是一个目录，则退出
-		if (!dirFile.exists() || !dirFile.isDirectory()) {
-			return false;
-		}
-		flag = true;
-		File[] files = dirFile.listFiles();// 获得传入路径下的所有文件
-		for (int i = 0; i < files.length; i++) {// 循环遍历删除文件夹下的所有文件(包括子目录)
-			if (files[i].isFile()) {// 删除子文件
-				flag = deleteFile(files[i].getAbsolutePath());
-				System.out.println(files[i].getAbsolutePath() + " 删除成功");
-				if (!flag)
-					break;// 如果删除失败，则跳出
-			} else {// 运用递归，删除子目录
-				flag = deleteDirectory(files[i].getAbsolutePath());
-				if (!flag)
-					break;// 如果删除失败，则跳出
-			}
-		}
-		if (!flag)
-			return false;
-		if (dirFile.delete()) {// 删除当前目录
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	// 创建单个文件
 	public static boolean createFile(String filePath) {
@@ -186,7 +120,7 @@ public class FileUtils {
 	 */
 	public static String getExt(String name) {
 		Integer index = name.lastIndexOf(".");
-		return name.substring(index);
+		return index > -1 ? name.substring(index) : "";
 	}
 
 	public static File copy(String in, String out) throws IOException {
@@ -221,30 +155,18 @@ public class FileUtils {
 	 */
 	public static String getFileName(String srcName) {
 		int index = srcName.lastIndexOf(File.separator);
-		String name = srcName.substring(index + 1);
-		return name;
+		return index > -1 ? srcName.substring(index + 1) : srcName;
 	}
 
 	public static void main(String[] args) throws IOException {
-		String n = FileUtils.getFileName("asdfkasdfadsfjla.dsf");
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		long millis = 5 * 1000l;
-		Date date = new Date(millis);
-		Calendar c = Calendar.getInstance(TimeZone.getDefault());
-
-		c.setTimeInMillis(millis);
-
-		String start = sdf.format(c.getTime());
-		System.out.println(start);
-		Runtime.getRuntime().exec("cmd /C notepad hh.hh");
+		FileUtils.createDir("e:\\ab\\cc");
 	}
 
 	public static double getDirSize(String string) {
 		return getDirSize(new File(string));
 	}
 
-	private static double getDirSize(File file) {
+	public static double getDirSize(File file) {
 		// 判断文件是否存在
 		if (file.exists()) {
 			// 如果是目录则递归计算其内容的总大小
@@ -262,5 +184,31 @@ public class FileUtils {
 			System.out.println("文件或者文件夹不存在，请检查路径是否正确！");
 			return 0.0;
 		}
+	}
+
+	public static void deleteDirectory(String path) throws IOException {
+		org.apache.commons.io.FileUtils.deleteDirectory(new File(path));
+	}
+
+	public static void deleteFile(String path) throws IOException {
+		if (FileUtils.isExistFile(path)) {
+			File f = new File(path);
+			f.delete();
+		}
+
+	}
+
+	public static String getDisk(String filePath) {
+		String disk = "";
+		if (!StringUtils.isEmpty(filePath) && filePath.length() >= 2) {
+			disk = filePath.substring(0, 2);
+		}
+		return disk;
+	}
+
+	public static String getNoExtName(String srcName) {
+		String ext = getExt(srcName);
+		srcName = getFileName(srcName);
+		return srcName.substring(0, srcName.length() - ext.length());
 	}
 }

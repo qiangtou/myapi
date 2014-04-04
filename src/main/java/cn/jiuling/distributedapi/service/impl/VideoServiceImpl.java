@@ -1,6 +1,8 @@
 package cn.jiuling.distributedapi.service.impl;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -36,6 +38,8 @@ import cn.jiuling.distributedapi.Vo.QueryTaskVo;
 import cn.jiuling.distributedapi.Vo.RetrieveParamVo;
 import cn.jiuling.distributedapi.Vo.ReturnData;
 import cn.jiuling.distributedapi.Vo.SnapGenInfoVo;
+import cn.jiuling.distributedapi.Vo.SnapshotFolderVo;
+import cn.jiuling.distributedapi.Vo.SnapshotVo;
 import cn.jiuling.distributedapi.Vo.Status;
 import cn.jiuling.distributedapi.Vo.TaskDetailVo;
 import cn.jiuling.distributedapi.Vo.TaskVo;
@@ -48,6 +52,7 @@ import cn.jiuling.distributedapi.dao.AnalysisvideoDao;
 import cn.jiuling.distributedapi.dao.AssigntaskDao;
 import cn.jiuling.distributedapi.dao.Autoanalyseparam4cameraDao;
 import cn.jiuling.distributedapi.dao.AutoanalyseparamDao;
+import cn.jiuling.distributedapi.dao.CameraDao;
 import cn.jiuling.distributedapi.dao.ConfigDao;
 import cn.jiuling.distributedapi.dao.DownloadtasksDao;
 import cn.jiuling.distributedapi.dao.EnhanceTaskDao;
@@ -62,6 +67,7 @@ import cn.jiuling.distributedapi.model.Analysisvideo;
 import cn.jiuling.distributedapi.model.Assigntask;
 import cn.jiuling.distributedapi.model.Autoanalyseparam;
 import cn.jiuling.distributedapi.model.Autoanalyseparam4camera;
+import cn.jiuling.distributedapi.model.Camera;
 import cn.jiuling.distributedapi.model.Config;
 import cn.jiuling.distributedapi.model.Downloadtasks;
 import cn.jiuling.distributedapi.model.EnhanceTask;
@@ -107,6 +113,8 @@ public class VideoServiceImpl implements VideoService {
 	private EnhanceTaskDao enhanceTaskDao;
 	@Resource
 	private FsrtaskDao fsrtaskDao;
+	@Resource
+	private CameraDao cameraDao;
 
 	@Override
 	public List queryVideo(Long cameraid, Long userid) {
@@ -816,6 +824,7 @@ public class VideoServiceImpl implements VideoService {
 	@Override
 	public String getsnapshotzipurl(String flownumber, String snapshotType, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo,
 			Short objType2) {
+		String downLoadUrl = "";
 		if (!"tube".equals(snapshotType) && !"obj".equals(snapshotType)) {
 			throw new ServiceException(Status.INVALID_VALUE);
 		}
@@ -857,32 +866,84 @@ public class VideoServiceImpl implements VideoService {
 			}
 		}
 		Short enableCarnum = 0;
+		SnapshotVo snapshot;
 		if ("tube".equals(snapshotType)) {
-			queryTubeSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo);
+			snapshot = queryTubeSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo);
 		} else {
-			queryObjSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo, objType2);
+			snapshot = queryObjSnapshot(taskId, 0, 10000, sortType, sortOrder, objType, objSize, rgbInfo, objType2);
 		}
 
-		// TODO QuerySnapshotFolder
+		SnapshotFolderVo sf = videoDao.querySnapshotFolder(flownumber);
+		// 去掉路径和扩展名
+		String fileName = FileUtils.getNoExtName(sf.getLocalFilename());
+		fileName = fileName + "_" + flownumber;
+
+		String preFix = "obj".equals(snapshotType) ? "obj" : "all";
+		fileName = preFix + sortType + sortOrder + objType + objSize + "_" + fileName; // 如果是目标快照,添加obj前缀
+		deleteFile("zip", "zipSpace");
+		String webRoot = PathUtils.getWebRoot() + File.separator;
+		String tmpDir = webRoot;
+		if (snapshot.getIsObjSnapReady() == 0) {
+			tmpDir += fileName + "_" + System.currentTimeMillis();
+			FileUtils.createDir(tmpDir);
+			fileName = tmpDir + ".zip";
+		} else if (snapshot.getIsObjSnapReady() == 1) {
+			fileName = fileName + ".zip";
+			String zipFile = webRoot + "zip" + File.separator + fileName;
+			if (FileUtils.isExistFile(zipFile)) {
+				try {
+					downLoadUrl = "vsdownload:" + URLEncoder.encode(fileName, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+				}
+				return downLoadUrl;
+			}
+		}
+		return downLoadUrl;
+	}
+
+	/**
+	 * 清理web根目录下的空间
+	 * 
+	 * @param toDelete
+	 *            web根目录下要清理的文件夹名
+	 * 
+	 * @param compareKey
+	 *            从xml里面通过compareKey取得大小,和toDelete比较, 要确保toDelete比这个值小,大了就删里面的文件
+	 */
+	private void deleteFile(String toDelete, String compareKey) {
+		String file = PathUtils.getWebRoot() + File.separator + toDelete;
+		File f = new File(file);
+		if (f.exists()) {
+			Double size = FileUtils.getDirSize(file);
+			Integer orgvideofragmentSize = Integer.valueOf(ConfigUtils.getValue(compareKey));
+			File fs[] = f.listFiles();
+			for (int i = 0, j = fs.length; size.intValue() > orgvideofragmentSize.intValue() && i < j; i++) {
+				File subFile = fs[i];
+				size = size - FileUtils.getDirSize(subFile);
+				subFile.delete();
+			}
+		}
+
+	}
+
+	private SnapshotVo queryObjSnapshot(Integer taskId, int i, int j, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo,
+			Short objType2) {
 		return null;
 	}
 
-	private void queryObjSnapshot(Integer taskId, int i, int j, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo, Short objType2) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void queryTubeSnapshot(Integer taskId, int index, int count, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo) {
-		// TODO Auto-generated method stub
+	private SnapshotVo queryTubeSnapshot(Integer taskId, int index, int count, Short sortType, Short sortOrder, Short objType, Short objSize, String rgbInfo) {
 		Generatevideo g = generatevideoDao.load(taskId.longValue());
 		Short isAllSnapshots = 1;
 		if (1 != g.getGenerateStatusFlag()) {
 			isAllSnapshots = 0;
 		}
 		// ===== Query snapshot info =====
-		if (objType == 0) {
-
-		}
+		SnapshotVo sv = new SnapshotVo();
+		/* TODO queryTubeSnapshot 此处不影响结果
+		videoDao.queryTubeSnapshot(taskId, index, count, sortType,
+		 sortOrder, objType, objSize, rgbInfo);*/
+		sv.setIsObjSnapReady(isAllSnapshots);
+		return sv;
 
 	}
 
@@ -913,7 +974,7 @@ public class VideoServiceImpl implements VideoService {
 			if (!FileUtils.isExistFile(filename)) {
 				return url;
 			}
-			deleteOrgVideoFragment();
+			deleteFile("videoclip", "orgvideofragment");
 			// 创视频片段文件夹
 			String base_dir = File.separator + "videoclip";
 			String webRootPath = PathUtils.getWebRoot();
@@ -949,20 +1010,6 @@ public class VideoServiceImpl implements VideoService {
 
 		} catch (Exception e) {
 			throw new ServiceException(Status.QUERY_ERROR, e);
-		}
-	}
-
-	private void deleteOrgVideoFragment() {
-		String file = "videoclip";
-		Double size = FileUtils.getDirSize(file);
-		Integer orgvideofragmentSize = Integer.valueOf(ConfigUtils.getValue("orgvideofragment"));
-		if (size.intValue() > orgvideofragmentSize.intValue()) {
-			// 删一半文件？
-			File f = new File(file);
-			File fs[] = f.listFiles();
-			for (int i = 0, j = fs.length / 2; i < j; i++) {
-				fs[i].delete();
-			}
 		}
 	}
 
@@ -1640,6 +1687,85 @@ public class VideoServiceImpl implements VideoService {
 		} catch (Exception e) {
 			throw new ServiceException(Status.DEL_ERROR, e);
 		}
+	}
 
+	@Override
+	public Useruploadvideo addvideo(Long cameraid, String videoFilename, Timestamp recordTime, Timestamp createtime, Short isautosubmit, Short videoType,
+			Integer userId) {
+		try {
+
+			Camera c = cameraDao.get(cameraid);
+			if (c == null) {
+				throw new ServiceException(Status.OBJECT_IS_NOT_EXIST);
+			}
+			Long caseId = c.getCaseId();
+			String srcName = videoFilename.trim();
+			String srcURI;
+			String destURI;
+			String separator = File.separator;
+			String dataPath = RegUtils.getDataPath() + "\\AstVS_1v2\\orgvideos\\" + caseId + separator + cameraid;
+			if (FileUtils.isExistFile(srcName)) {
+				// 如果传了一个绝对路径
+				srcURI = srcName;
+				destURI = dataPath + separator + FileUtils.getFileName(srcName);
+			} else {
+				// 就当是一个文件名吧
+				FileUtils.createDir(dataPath);
+				String ftpPath = RegUtils.getFtpPath();
+				String ftpFold = ftpPath + separator + caseId + separator + cameraid;
+				FileUtils.createDir(ftpFold);
+				String ext = FileUtils.getExt(srcName);
+				// 取得不包含扩展名的文件名
+				String fileName = FileUtils.getNoExtName(srcName);
+
+				File fFile = FileUtils.getNoRepeatFilename(ftpFold + separator + srcName);
+				File dFile = FileUtils.getNoRepeatFilename(dataPath + separator + fileName + ".avi");
+
+				String fName = FileUtils.getNoExtName(fFile.getAbsolutePath());
+				String dName = FileUtils.getNoExtName(dFile.getAbsolutePath());
+				if (fName.equals(dName)) {
+					fileName = fName;
+				} else {
+					/**
+					 * nn(0) vs nn(1) nn(0)
+					 */
+					String f = fName.substring(fileName.length()).replace("(", "").replace(")", "");
+					String d = dName.substring(fileName.length()).replace("(", "").replace(")", "");
+					if (f.length() == 0) {
+						fileName = dName;
+					} else if (d.length() == 0) {
+						fileName = fName;
+					} else {
+						fileName = Integer.valueOf(d).intValue() > Integer.valueOf(f).intValue() ? fName : dName;
+					}
+				}
+				String oldFtpFile = ftpPath + separator + fileName + ext;
+				if (!srcName.equals(fileName + ext)) {
+					FileUtils.copy(ftpPath + separator + srcName, oldFtpFile);
+				}
+				srcURI = ftpFold + separator + fileName + ext;
+				destURI = dataPath + separator + fileName + ".avi";
+				FileUtils.copy(oldFtpFile, srcURI);
+			}
+
+			/*(CameraID,    timestamp, record_time, userid, srcURL, destURL, status, last_err_code, last_err_msg, progress, retry_count, last_try_video_vendor_type, isAutoSubmit, video_type) 
+			  (CameraID,   createtime, record_time, userid,@srcURL, @destURL,      0,             0,          '',        0,           0,                         -1, isAutoSubmit, video_type);
+			*/
+			userId = 1;
+			Useruploadvideo u = new Useruploadvideo();
+			u.setCameraId(cameraid);
+			u.setTimestamp(createtime);
+			u.setRecordTime(recordTime);
+			u.setUserid(userId.longValue());
+			u.setSrcUrl(srcURI);
+			u.setDestUrl(destURI);
+			u.setIsAutoSubmit(isautosubmit);
+			u.setVideoType(videoType);
+
+			videoDao.save(u);
+			return u;
+		} catch (Exception e) {
+			throw new ServiceException(Status.ADD_ERROR, e);
+		}
 	}
 }

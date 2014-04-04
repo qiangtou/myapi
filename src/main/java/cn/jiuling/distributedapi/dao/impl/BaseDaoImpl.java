@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 
 import cn.jiuling.distributedapi.dao.BaseDao;
 
-@Repository
+@Repository("baseDao")
 public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 	protected Logger logger = Logger.getLogger(this.getClass());
 	private Class clazz;
@@ -47,13 +47,17 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 	}
 
 	public T findBy(String name, Object value) {
-		String queryString = "from " + getClazz().getName() + " o where o." + name + "=?";
-		List<T> list = getHibernateTemplate().find(queryString, value);
+		List<T> list = listBy(name, value);
 		T t = null;
 		if (list.size() > 0) {
 			t = list.get(0);
 		}
 		return t;
+	}
+
+	public List listBy(String name, Object value) {
+		String queryString = "from " + getClazz().getName() + " o where o." + name + "=?";
+		return getHibernateTemplate().find(queryString, value);
 	}
 
 	public T get(Serializable id) {
@@ -92,6 +96,19 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 	}
 
 	@Override
+	public List exeSql(final String sql, final int firstResult, final int maxResults) {
+		return getHibernateTemplate().executeFind(new HibernateCallback() {
+			@Override
+			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+				SQLQuery query = session.createSQLQuery(sql);
+				query.setFirstResult(firstResult);
+				query.setMaxResults(maxResults);
+				return query.list();
+			}
+		});
+	}
+
+	@Override
 	public Long getCount(String sql) {
 		String lowerSql = sql.toLowerCase();
 		int fromIndex = lowerSql.indexOf("from");
@@ -100,6 +117,18 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 		}
 		sql = "select count(*) " + sql;
 		List list = getHibernateTemplate().find(sql);
+		return (Long) list.get(0);
+	}
+
+	@Override
+	public Long getCount(String sql, Object[] o) {
+		String lowerSql = sql.toLowerCase();
+		int fromIndex = lowerSql.indexOf("from");
+		if (fromIndex > -1) {
+			sql = sql.substring(fromIndex);
+		}
+		sql = "select count(*) " + sql;
+		List list = getHibernateTemplate().find(sql, o);
 		return (Long) list.get(0);
 	}
 
@@ -114,5 +143,16 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 				return query.list();
 			}
 		});
+	}
+
+	@Override
+	public void deleteAll() {
+		deleteAllByEntity(getClazz().getName());
+	}
+
+	@Override
+	public void deleteAllByEntity(String entityName) {
+		String queryString = "delete from " + entityName;
+		super.getHibernateTemplate().bulkUpdate(queryString);
 	}
 }

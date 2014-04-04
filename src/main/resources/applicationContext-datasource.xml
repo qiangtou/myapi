@@ -93,6 +93,7 @@
 			<tx:method name="disable*" propagation="REQUIRED" />
 			<tx:method name="modify*" propagation="REQUIRED"  />
 			<tx:method name="submit*" propagation="REQUIRED"  />
+			<tx:method name="empty*" propagation="REQUIRED"  />
 			<tx:method name="assign*" propagation="REQUIRED"  />
 		</tx:attributes>
 	</tx:advice>

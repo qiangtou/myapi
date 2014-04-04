@@ -13,7 +13,7 @@ public class EnhanceTaskDaoTest extends BaseTest {
 
 	@Test
 	public void getLastTask() {
-		enhanceTaskDao.findByEnhanceType("hhh", 2, 10);
-
+		// enhanceTaskDao.findByEnhanceType("hhh", 2, 10);
+		enhanceTaskDao.deleteAll();
 	}
 }

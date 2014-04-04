@@ -27,6 +27,18 @@ public class videoDaoTest extends BaseTest {
 	}
 
 	@Test
+	public void queryTubeSnapshot() {
+
+		Integer taskId = 1;
+		Short sortType = 3;
+		Short sortOrder = 1;
+		Short objType = 1;
+		Short objSize = 1;
+		String rgbInfo = "";
+		videoDao.queryTubeSnapshot(taskId, 0, 10, sortType, sortOrder, objType, objSize, rgbInfo);
+	}
+
+	@Test
 	public void queryassignedtasklist() {
 		videoDao.queryassignedtasklist(1l);
 	}

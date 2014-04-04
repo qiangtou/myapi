@@ -24,7 +24,7 @@ public enum Status {
 	CREATOR_IS_NULL(1021, "creator_is_null"),
 	DISK_SPACE_IS_NOT_ENOUGHT(1022, "disk space is not enought"),
 	FILE_NOT_EXIST(1023, "file_not_exist"),
-	OBJECT_IS_NOT_EXIST(9901, "object is not exist"),
+	OBJECT_IS_NOT_EXIST(1003, "object is not exist"),
 	SRCFILE_IS_NOT_EXIST(5, "srcFile isn't exist"),
 	SRCFILE_ISNOT_VALID(6, "srcFile isn't valid"),
 	TASK_REPEAT(-3, "a repeat task not finish!"),
@@ -34,7 +34,9 @@ public enum Status {
 	EXECUTE_SUCCESS(0, "execute success"),
 	EXECUTE_ERROR(0, "Execute fail"),
 	NO_TASK(0, "no task assigning"),
-	TYPE_ERROR(1021, "type error")
+	TYPE_ERROR(1021, "type error"),
+	OBJECT_IS_EXIST(1002, "object is exist"),
+	STATUS_ERROR(1003, "status error")
 
 	;
 

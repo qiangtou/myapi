@@ -130,4 +130,6 @@ public interface VideoService {
 
 	public void deleteFSRTask(Integer id);
 
+	public Useruploadvideo addvideo(Long cameraid, String videoFilename, Timestamp recordTime, Timestamp createtime, Short isautosubmit, Short videoType, Integer userId);
+
 }

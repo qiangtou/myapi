@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.jiuling.distributedapi.Vo.LoginUserVo;
@@ -42,7 +43,7 @@ public class LoginController extends BaseController {
 			LoginUserVo loginUser = userService.getLoginUser(user);
 			if (null != loginUser) {
 				session.setAttribute("userName", user.getUserName());
-				session.setAttribute("userId", user.getUserId());
+				session.setAttribute("userId", loginUser.getUserid());
 				rs.setStatus(Status.LOGIN_SUCCESS);
 				res = ResponseUtils.parse(rs, loginUser, false);
 			} else {
@@ -83,4 +84,29 @@ public class LoginController extends BaseController {
 		return isValid;
 	}
 
+	@RequestMapping(value = "/login/valid.php", params = "oldpw", produces = "application/json;charset=utf-8")
+	@ResponseBody
+	public boolean validOldPw(String oldpw, HttpSession session) {
+		log.info(oldpw);
+		Integer userid = super.getUserId(session);
+		return userService.validOldPw(userid, oldpw);
+	}
+
+	@RequestMapping(value = "modifypassword.php")
+	public void modifypassword() {
+	}
+
+	@RequestMapping(value = "modifypassword.php", params = "newpw", produces = "application/json;charset=utf-8")
+	@ResponseBody
+	public boolean modifypassword(@RequestParam String oldpw, @RequestParam String newpw, HttpSession session) {
+		boolean flag = false;
+		try {
+			Integer userid = super.getUserId(session);
+			User user = userService.modifyPw(userid, oldpw, newpw);
+			flag = true;
+		} catch (Exception e) {
+
+		}
+		return flag;
+	}
 }

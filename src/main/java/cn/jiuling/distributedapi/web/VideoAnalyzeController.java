@@ -825,7 +825,7 @@ public class VideoAnalyzeController extends BaseController {
 	}
 
 	/**
-	 * TODO 6.30 添加低分辨率人脸重建（以下简称FSR）任务
+	 * 6.30 添加低分辨率人脸重建（以下简称FSR）任务
 	 * 
 	 * @param picFilename
 	 *            图片文件名

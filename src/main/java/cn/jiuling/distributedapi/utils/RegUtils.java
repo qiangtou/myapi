@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.log4j.Logger;
+
 public class RegUtils {
 
 	private static final String REG_SETTING = "HKEY_CLASSES_ROOT\\SOFTWARE\\ASTRI\\VideoSummary\\Settings\\";
+	private static final Logger log = Logger.getLogger(RegUtils.class);
 
 	public static String getValue(String reg) {
 		String value = "";
@@ -37,7 +40,13 @@ public class RegUtils {
 	 * @return
 	 */
 	public static String getFtpPath() {
-		return RegUtils.getValue(getRegSetting("FtpPath"));
+		String ftpPath = "c:\\tmp\\ftp_fold";
+		try {
+			ftpPath = RegUtils.getValue(getRegSetting("FtpPath"));
+		} catch (Exception e) {
+			log.error("get FtpPath from regeidtor fail!", e);
+		}
+		return ftpPath;
 	}
 
 	/**
@@ -46,7 +55,13 @@ public class RegUtils {
 	 * @return
 	 */
 	public static String getDataPath() {
-		return RegUtils.getValue(getRegSetting("VistaDataPath"));
+		String dataPath = "C:\\VideoInvestigation\\VIServer\\DAT";
+		try {
+			dataPath = RegUtils.getValue(getRegSetting("VistaDataPath"));
+		} catch (Exception e) {
+			log.error("get VistaDataPath from regedit fail!", e);
+		}
+		return dataPath;
 	}
 
 	private static String getRegSetting(String name) {

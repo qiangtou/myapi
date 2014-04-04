@@ -1,7 +1,9 @@
 package cn.jiuling.distributedapi.utils;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -186,11 +188,18 @@ public class ResponseUtils {
 	 */
 	private static String getFieldValue(Object obj, Field f) {
 		String value = "";
-
+		Object o;
 		try {
-			value = "" + f.get(obj);
-			value = "null".equals(value) ? "" : value;
-			// TODO 处理各种类型
+			o = f.get(obj);
+			if (o == null) {
+				value = "";
+			} else if (o instanceof Date) {
+				Date d = (Date) o;
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				value = sdf.format(d);
+			} else {
+				value = o.toString();
+			}
 		} catch (Exception e) {
 			log.error("get fieldvalue error!!", e);
 		}

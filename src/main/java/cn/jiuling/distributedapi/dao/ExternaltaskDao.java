@@ -27,4 +27,10 @@ public interface ExternaltaskDao extends BaseDao<Externaltask> {
 
 	public ReturnData findAnalyse(Long videoid, Integer index, Integer count);
 
+	public void deleteByVideoId(Long id);
+
+	public void deleteByCameraId(Long id);
+
+	public void deleteByCaseId(Long id);
+
 }

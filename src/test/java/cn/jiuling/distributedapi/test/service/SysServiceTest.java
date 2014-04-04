@@ -13,7 +13,12 @@ public class SysServiceTest extends BaseTest {
 
 	@Test
 	public void statusinfo() {
-		sysService.statusinfo();
+		sysService.queryStatusinfo();
+	}
+
+	@Test
+	public void emptyfiledata() {
+		sysService.emptyfiledata();
 	}
 
 }

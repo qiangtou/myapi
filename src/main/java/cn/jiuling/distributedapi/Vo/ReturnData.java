@@ -14,7 +14,6 @@ public class ReturnData {
 
 	public ReturnData() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public Long getTotalcount() {

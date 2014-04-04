@@ -6,4 +6,6 @@ public interface AnalysisvideoDao extends BaseDao<Analysisvideo> {
 
 	public Analysisvideo getHeightAndwidth(String flowNumber);
 
+	public Analysisvideo findByFlowNumber(String flowNumber);
+
 }

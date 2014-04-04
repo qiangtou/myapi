@@ -10,7 +10,6 @@ public class ListResultVo {
 
 	public ListResultVo() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public ListResultVo(int totalCount, List list) {

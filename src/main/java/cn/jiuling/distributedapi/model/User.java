@@ -48,6 +48,13 @@ public class User {
 		this.groupId = groupId;
 	}
 
+	public User(Integer userId, String userName, String password, String fullName, Integer groupId) {
+		this(userName, password);
+		this.fullName = fullName;
+		this.groupId = groupId;
+		this.userId = userId;
+	}
+
 	public User() {
 	}
 

@@ -30,4 +30,8 @@ public interface UserService {
 
 	public LoginUserVo getLoginUser(User user);
 
+	public boolean validOldPw(Integer userid, String oldpw);
+
+	public User modifyPw(Integer userid, String oldPw, String newPw);
+
 }
